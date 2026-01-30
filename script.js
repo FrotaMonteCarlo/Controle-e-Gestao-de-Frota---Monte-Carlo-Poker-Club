@@ -138,17 +138,33 @@ async function carregarDados() {
 /* ================= REALTIME ================= */
 
 db.channel("sync-frota")
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public" },
-    payload => {
 
-      console.log("Realtime update:", payload.table);
-      carregarDados();
+.on(
+  "postgres_changes",
+  { event: "*", schema: "public", table: "veiculos" },
+  () => carregarDados()
+)
 
-    }
-  )
-  .subscribe();
+.on(
+  "postgres_changes",
+  { event: "*", schema: "public", table: "motoristas" },
+  () => carregarDados()
+)
+
+.on(
+  "postgres_changes",
+  { event: "*", schema: "public", table: "abastecimentos" },
+  () => carregarDados()
+)
+
+.on(
+  "postgres_changes", 
+  { event: "*", schema: "public", table: "manutencoes" },
+  () => carregarDados()
+)
+
+.subscribe();
+
 
 /* ================= VARS ================= */
 
