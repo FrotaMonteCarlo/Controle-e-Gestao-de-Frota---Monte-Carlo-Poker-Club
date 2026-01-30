@@ -1,0 +1,900 @@
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* VARIÁVEIS */
+:root {
+  --azul-escuro: #0f1f33;
+  --azul-medio: #142a45;
+  --dourado: #d4af37;
+  --bg-app: #f5f7fb;
+  --card-bg: #ffffff;
+  --borda-soft: #e2e6ef;
+}
+
+/* BODY */
+body {
+  background: var(--bg-app);
+}
+
+/* APP */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width: 250px;
+  background: linear-gradient(180deg, #0f1f33, #142a45);
+  padding: 20px;
+  color: white;
+}
+
+.logo img {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu a {
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #dfe7f3;
+  text-decoration: none;
+}
+
+.menu a.active {
+  background: linear-gradient(90deg, var(--dourado), #caa233);
+  color: #0f1f33;
+  font-weight: bold;
+}
+
+/* MAIN */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOPBAR */
+
+.topbar {
+  height: 64px;
+  background: #fff;
+  padding: 0 25px;
+  border-bottom: 1px solid var(--borda-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.avatar {
+  background: var(--dourado);
+  color: #000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* CONTENT */
+
+.content {
+  width: 100%;
+  max-width: 100%;
+  padding: 30px 40px;
+}
+
+/* PAGES */
+
+.page.hidden {
+  display: none;
+}
+
+/* TITULOS */
+
+.page h1 {
+  font-size: 26px;
+  margin-bottom: 20px;
+  color: #0f1f33;
+}
+
+/* ================= KPI GRID ================= */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.dash-card {
+  background: white;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border-left: 6px solid var(--dourado);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.05);
+}
+
+.dash-card .icon {
+  background: var(--dourado);
+  color: #000;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.dash-card strong {
+  font-size: 20px;
+}
+
+/* ALERTA */
+
+.alerta-oleo {
+  padding: 14px 18px;
+  background: #e7f8f1;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+/* ================= GRAFICOS ================= */
+
+.graficos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.grafico-card {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--borda-soft);
+  min-height: 280px;
+  }
+  canvas {
+  max-height: 220px;
+}
+
+/* ================= FORM ================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+input, select {
+  padding: 11px;
+  border-radius: 8px;
+  border: 1px solid var(--borda-soft);
+}
+
+/* BOTÕES */
+
+button {
+  background: linear-gradient(135deg, var(--dourado), #caa233);
+  border: none;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* LISTAS */
+
+.lista {
+  margin-top: 15px;
+  list-style: none;
+}
+
+.lista li {
+  background: white;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--borda-soft);
+  margin-bottom: 10px;
+}
+/* ===== REGISTROS LISTA ===== */
+
+.registro-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== INFO ===== */
+
+.registro-info {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+/* ===== BOTÕES MINI ===== */
+
+.btn-mini {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #d4af37, #caa233);
+  color: #0f1f33;
+  font-weight: 600;
+}
+
+.btn-mini:hover {
+  filter: brightness(1.05);
+}
+
+/* ===== BOTÃO EXCLUIR ===== */
+
+.btn-mini.danger {
+  background: linear-gradient(135deg, #b02a2a, #8b1a1a);
+  color: #fff;
+}
+.registro-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.registro-info {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.btn-mini {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg,#d4af37,#caa233);
+  color:#0f1f33;
+  font-weight:600;
+}
+
+.btn-mini.danger {
+  background: linear-gradient(135deg,#b02a2a,#8b1a1a);
+  color:#fff;
+}
+/* ================= EXTRATO EXECUTIVO ================= */
+
+.titulo-extrato {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* FILTROS */
+
+.filtros-extrato {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filtros-extrato select,
+.filtros-extrato input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  min-width: 180px;
+  font-size: 14px;
+}
+
+/* RESUMO EXECUTIVO */
+
+.resumo-extrato {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.resumo-box {
+  background: linear-gradient(135deg,#0b1220,#111827);
+  color: #fff;
+  padding: 16px 18px;
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.15);
+}
+
+.resumo-box span {
+  font-size: 12px;
+  opacity: .75;
+}
+
+.resumo-box strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #facc15;
+}
+
+/* ================= TABELA EXECUTIVA ================= */
+
+.tabela-extrato {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.tabela-extrato thead th {
+  text-align: left;
+  padding: 12px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.tabela-extrato tbody tr {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.05);
+}
+
+.tabela-extrato tbody td {
+  padding: 14px 12px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+/* primeira coluna arredondada */
+
+.tabela-extrato tbody tr td:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+/* última coluna arredondada */
+
+.tabela-extrato tbody tr td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+/* ================= BOTÕES AÇÕES ================= */
+
+.btn-mini {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #facc15;
+  color: #000;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.btn-mini:hover {
+  opacity: .85;
+}
+
+.btn-mini.danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* ================= FORM ABASTECIMENTO ================= */
+
+.form-grid {
+  gap: 12px;
+}
+
+.form-grid input,
+.form-grid select {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 14px;
+}
+
+/* ================= BOTÕES PRINCIPAIS ================= */
+
+button {
+  margin-top: 12px;
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ================= RESPONSIVO ================= */
+
+@media(max-width:900px){
+
+.filtros-extrato {
+  flex-direction: column;
+}
+
+.resumo-extrato {
+  grid-template-columns: 1fr;
+}
+
+}
+.bi-variacao {
+  display:block;
+  margin-top:4px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.bi-up {
+  color:#1db954;
+}
+
+.bi-down {
+  color:#e63946;
+}
+
+.bi-neutral {
+  color:#999;
+}
+.dashboard-grid {
+  gap: 22px;
+}
+
+.dash-card {
+  padding: 22px 26px;
+  min-height: 110px;
+}
+
+.dash-card strong {
+  font-size: 22px;
+}
+
+.dash-card span {
+  font-size: 13px;
+  opacity: 0.8;
+}
+/* ================= LOGIN ================= */
+
+.login-body {
+  background: linear-gradient(135deg,#0f1f33,#020617);
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.login-card {
+  background: #0b1220;
+  padding: 40px 35px;
+  border-radius: 18px;
+  width: 340px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.6);
+  text-align: center;
+  border: 1px solid #1e293b;
+}
+
+.login-logo {
+  width: 120px;
+  margin-bottom: 15px;
+}
+
+.login-card h2 {
+  color: #facc15;
+  margin-bottom: 5px;
+}
+
+.login-card p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+.login-card input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #020617;
+  color: #fff;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#facc15,#eab308);
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-erro {
+  display: block;
+  margin-top: 12px;
+  color: #ef4444;
+  font-size: 13px;
+}
+/* ================= USER AREA PREMIUM ================= */
+
+.user-area{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.user-info{
+  text-align:right;
+  line-height:1.1;
+}
+
+.user-info span{
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:0.5px;
+}
+
+.user-info small{
+  font-size:11px;
+  color:#777;
+}
+
+.avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#d4af37,#f5d76e);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  color:#111;
+}
+
+/* BOTÃO LOGOUT */
+
+.btn-logout{
+  background:#e53935;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  transition:0.2s;
+}
+
+.btn-logout:hover{
+  background:#c62828;
+}
+/* ================= CORREÇÃO ALINHAMENTO MONETÁRIO ================= */
+
+.valor-monetario{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:0.3px;
+  display:block;
+  line-height:1.2;
+  color:#111;
+}
+/* ================= DASHBOARD CARD ENTERPRISE ================= */
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+}
+
+/* CARD BASE */
+
+.dash-card{
+  background:#fff;
+  border-radius:16px;
+  padding:18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  box-shadow:0 10px 20px rgba(0,0,0,0.05);
+  border-left:5px solid #d4af37;
+  min-height:100px;
+}
+
+/* ÍCONE */
+
+.dash-card .icon{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#d4af37,#f3d46b);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+
+/* TEXTO */
+
+.dash-card span{
+  font-size:13px;
+  color:#666;
+}
+
+.dash-card strong{
+  font-size:22px;
+  font-weight:800;
+  color:#111;
+  display:block;
+  margin-top:2px;
+}
+
+/* MONETÁRIO */
+
+.valor-monetario{
+  font-size:22px;
+  font-weight:800;
+  display:block;
+  line-height:1.2;
+}
+
+/* BI VARIAÇÃO */
+
+.bi-variacao{
+  font-size:11px;
+  margin-top:2px;
+}
+
+.bi-up{ color:#2e7d32; }
+.bi-down{ color:#c62828; }
+.bi-neutral{ color:#777; }
+
+/* RESPONSIVO */
+
+@media(max-width:900px){
+
+  .dashboard-grid{
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  }
+
+}
+/* ================= MODO TV ================= */
+
+.btn-tv{
+  background:#111;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.btn-tv:hover{
+  background:#000;
+}
+
+/* ESTADO TV */
+
+body.tv-mode .sidebar{
+  width:70px;
+}
+
+body.tv-mode .sidebar span,
+body.tv-mode .sidebar .menu-text{
+  display:none;
+}
+
+body.tv-mode .topbar{
+  height:50px;
+}
+
+body.tv-mode .content{
+  padding:30px;
+}
+
+/* CARDS GRANDES */
+
+body.tv-mode .dash-card{
+  min-height:130px;
+}
+
+body.tv-mode .dash-card strong{
+  font-size:28px;
+}
+
+body.tv-mode .icon{
+  width:60px;
+  height:60px;
+  font-size:28px;
+}
+
+/* GRÁFICOS GRANDES */
+
+body.tv-mode canvas{
+  max-height:320px !important;
+}
+
+/* TÍTULO */
+
+body.tv-mode h1{
+  font-size:34px;
+}
+/* ================= LOGIN CLEAN PREMIUM ================= */
+
+.login-wrapper{
+  position:fixed;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(135deg,#f8fafc,#eef2ff);
+}
+
+/* CARD */
+
+.login-card{
+  width:380px;
+  padding:40px 35px;
+  border-radius:20px;
+  background:#ffffffee;
+  backdrop-filter: blur(6px);
+  box-shadow:0 25px 50px rgba(0,0,0,0.08);
+  text-align:center;
+  animation:fadeIn .6s ease;
+}
+
+/* LOGO */
+
+.login-logo{
+  width:110px;
+  margin-bottom:10px;
+}
+
+/* TITULO */
+
+.login-card h1{
+  color:#1e293b;
+  font-size:22px;
+  margin:5px 0;
+}
+
+.login-sub{
+  color:#64748b;
+  font-size:13px;
+  display:block;
+  margin-bottom:25px;
+}
+
+/* INPUT */
+
+.login-card input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  outline:none;
+  background:#f9fafb;
+  color:#111827;
+  margin-bottom:15px;
+  font-size:14px;
+  transition:.2s;
+}
+
+.login-card input:focus{
+  border-color:#facc15;
+  background:#fff;
+}
+
+/* BOTÃO */
+
+.btn-login{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:linear-gradient(135deg,#facc15,#fde047);
+  color:#111;
+  font-weight:600;
+  cursor:pointer;
+  transition:.2s;
+  box-shadow:0 8px 15px rgba(250,204,21,.25);
+}
+
+.btn-login:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 25px rgba(250,204,21,.35);
+}
+
+/* ERRO */
+
+.login-erro{
+  color:#dc2626;
+  font-size:13px;
+  margin-top:10px;
+}
+
+/* ANIMAÇÃO */
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(15px)}
+  to{opacity:1; transform:translateY(0)}
+}
+/* ================= DETALHE DOURADO PREMIUM ================= */
+
+.login-card{
+  position:relative;
+  overflow:hidden;
+}
+
+/* BARRA LATERAL */
+
+.login-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:6px;
+  height:100%;
+  background:linear-gradient(
+    180deg,
+    #facc15,
+    #fde047,
+    #facc15
+  );
+}
+
+/* BRILHO SUAVE */
+
+.login-card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(250,204,21,0.08),
+    transparent 70%
+  );
+  pointer-events:none;
+}
+.page{
+  display:block;
+}
+.hidden{
+  display:none!important;
+}

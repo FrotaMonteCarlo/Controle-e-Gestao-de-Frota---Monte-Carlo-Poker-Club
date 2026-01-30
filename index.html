@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Monte Carlo</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- PDF EXECUTIVO -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+
+<div id="loginScreen" class="login-wrapper">
+
+  <div class="login-card">
+
+    <img src="logo-montecarlo.png" class="login-logo">
+
+    <h1>Monte Carlo Poker Club</h1>
+    <span class="login-sub">Acesso Corporativo Frota</span>
+
+    <input id="loginUser" placeholder="Usuário">
+    <input id="loginPass" type="password" placeholder="Senha">
+
+    <button onclick="fazerLogin()" class="btn-login">
+      Entrar
+    </button>
+
+    <div id="loginErro" class="login-erro"></div>
+
+  </div>
+
+</div>
+
+<!-- ================= SISTEMA ================= -->
+
+<div class="app" id="appSistema" style="display:none">
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar">
+
+<div class="logo">
+<img src="logo-montecarlo.png" style="width:120px">
+</div>
+
+<nav class="menu">
+
+<a href="#" data-page="dashboard" class="menu-link active">📊 Dashboard</a>
+<a href="#" data-page="veiculos" class="menu-link">🚗 Veículos</a>
+<a href="#" data-page="motoristas" class="menu-link">👤 Motoristas</a>
+<a href="#" data-page="abastecimento" class="menu-link">⛽ Abastecimento</a>
+<a href="#" data-page="bi" class="menu-link">📈 BI Executivo</a>
+<a href="#" data-page="manutencao" class="menu-link">🛠 Manutenção</a>
+<a href="#" data-page="financeiro" class="menu-link">💰 Financeiro</a>
+
+</nav>
+
+</aside>
+
+<!-- ================= MAIN ================= -->
+
+<div class="main">
+
+<header class="topbar">
+
+<div class="page-title">
+Monte Carlo — Controle Corporativo e Gestão de Frota
+</div>
+
+<!-- ===== USER AREA ===== -->
+
+<div class="user-area">
+
+  <div class="user-info">
+    <span id="nomeUsuario">ADMIN</span>
+    <small id="perfilUsuario">Administrador</small>
+  </div>
+
+  <div class="avatar" id="avatarUsuario">MC</div>
+
+  <button id="btnTV" class="btn-tv">📺 TV</button>
+
+  <button id="btnLogout" class="btn-logout" onclick="logoutSistema()">
+    Sair
+  </button>
+
+</div>
+
+</header>
+
+<main class="content">
+
+<!-- ================= DASHBOARD ================= -->
+
+<section id="dashboard" class="page">
+
+<h1>Dashboard Executivo</h1>
+
+<div class="dashboard-grid">
+
+<div class="dash-card">
+<div class="icon">🚗</div>
+<div>
+<span>Veículos</span>
+<strong id="cVeiculos">0</strong>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">👤</div>
+<div>
+<span>Motoristas</span>
+<strong id="cMotoristas">0</strong>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">⛽</div>
+<div>
+<span>Abastecimentos</span>
+<strong id="cAbastecimentos">0</strong>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">🛠</div>
+<div>
+<span>Manutenções</span>
+<strong id="cManutencoes">0</strong>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">💰</div>
+<div>
+<span>Combustível</span>
+<strong class="valor-monetario" id="totalCombustivel">R$ 0,00</strong>
+<small id="biCombustivel" class="bi-variacao">—</small>
+</div>
+</div>
+
+<div class="dash-card">
+<div class="icon">📋</div>
+<div>
+<span>Manutenção</span>
+<strong class="valor-monetario" id="totalManutencao">R$ 0,00</strong>
+</div>
+</div>
+
+</div>
+
+<div id="alertaOleo" class="alerta-oleo alerta-ok">
+✔ Nenhum veículo pendente
+</div>
+
+<div class="graficos-grid">
+
+<div class="grafico-card">
+<h3>Consumo por Veículo</h3>
+<canvas id="grafVeiculos"></canvas>
+</div>
+
+<div class="grafico-card">
+<h3>Consumo por Motorista</h3>
+<canvas id="grafMotoristas"></canvas>
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= BI EXECUTIVO ================= -->
+
+<section id="bi" class="page hidden">
+
+<h1>BI Executivo — Performance da Frota</h1>
+
+<div class="dashboard-grid">
+
+<div class="dash-card">
+<span>Total Gasto</span>
+<strong id="biTotal">R$ 0,00</strong>
+</div>
+
+<div class="dash-card">
+<span>Litros Consumidos</span>
+<strong id="biLitros">0</strong>
+</div>
+
+<div class="dash-card">
+<span>KM Rodados</span>
+<strong id="biKm">0</strong>
+</div>
+
+<div class="dash-card">
+<span>Custo Médio KM</span>
+<strong id="biCustoKm">R$ 0,00</strong>
+</div>
+
+</div>
+
+<div class="grafico-card" style="margin-top:20px">
+<h3>Top 5 Veículos por Consumo</h3>
+<canvas id="grafTopVeiculos"></canvas>
+</div>
+
+<h2 style="margin-top:20px">Ranking de Veículos</h2>
+
+<table class="tabela-extrato">
+<thead>
+<tr>
+<th>Veículo</th>
+<th>Total Gasto</th>
+<th>KM</th>
+<th>Custo/KM</th>
+</tr>
+</thead>
+<tbody id="rankingVeiculos"></tbody>
+</table>
+
+<h2 style="margin-top:20px">Ranking de Motoristas</h2>
+
+<table class="tabela-extrato">
+<thead>
+<tr>
+<th>Motorista</th>
+<th>Total Gasto</th>
+<th>KM</th>
+<th>Custo/KM</th>
+</tr>
+</thead>
+<tbody id="rankingMotoristas"></tbody>
+</table>
+
+<h2 style="margin-top:30px">Top 5 Veículos — Manutenção</h2>
+
+<div class="grafico-card">
+  <canvas id="grafTopManutencao"></canvas>
+</div>
+
+<h2 style="margin-top:20px">Ranking de Gastos com Manutenção</h2>
+
+<table class="tabela-extrato">
+
+<thead>
+<tr>
+<th>Veículo</th>
+<th>Total Manutenção</th>
+</tr>
+</thead>
+
+<tbody id="rankingManutencao"></tbody>
+
+</table>
+
+
+</section>
+
+<!-- ================= MANUTENÇÃO ================= -->
+
+<section id="manutencao" class="page hidden">
+
+<h1>Manutenção da Frota</h1>
+
+<div class="form-grid">
+
+<select id="manVeiculo">
+<option value="">Selecione Veículo</option>
+</select>
+
+<select id="manCategoria">
+<option value="">Categoria</option>
+<option value="Preventiva">Preventiva</option>
+<option value="Corretiva">Corretiva</option>
+<option value="Troca de Óleo">Troca de Óleo</option>
+<option value="Freios">Freios</option>
+<option value="Suspensão">Suspensão</option>
+<option value="Pneus">Pneus</option>
+<option value="Elétrica">Elétrica</option>
+<option value="Motor">Motor</option>
+<option value="Outros">Outros</option>
+</select>
+
+<input id="manTipo" placeholder="Descrição da manutenção">
+
+<input id="manValor" type="number" step="0.01" placeholder="Valor R$">
+
+<input id="manData" type="date">
+
+</div>
+
+
+<button onclick="salvarManutencao()">Salvar Manutenção</button>
+
+<table class="tabela-extrato" style="margin-top:20px">
+
+<thead>
+<tr>
+<th>Data</th>
+<th>Veículo</th>
+<th>Categoria</th>
+<th>Descrição</th>
+<th>Valor</th>
+
+</tr>
+</thead>
+
+<tbody id="listaManutencoes"></tbody>
+
+</table>
+
+</section>
+
+<!-- ================= VEÍCULOS ================= -->
+
+<section id="veiculos" class="page hidden">
+
+<h1>Cadastro de Veículos</h1>
+
+<div class="form-grid">
+
+<input id="vPlaca" placeholder="Placa">
+<input id="vMarca" placeholder="Marca">
+<input id="vModelo" placeholder="Modelo">
+<input id="vAno" type="number" placeholder="Ano">
+
+<select id="vCategoria">
+<option value="">Categoria</option>
+<option>SUV</option>
+<option>Hatch</option>
+<option>Sedan</option>
+<option>Pick-Up</option>
+<option>Van</option>
+<option>Utilitário</option>
+<option>Caminhão</option>
+</select>
+
+<input id="vCor" placeholder="Cor">
+<input id="vRenavan" placeholder="Renavan">
+<input id="vKmAtual" type="number" placeholder="KM Atual">
+<input id="vKmOleo" type="number" placeholder="KM Última Troca Óleo">
+
+</div>
+
+<button onclick="salvarVeiculo()">Salvar Veículo</button>
+
+<ul id="listaVeiculos" class="lista"></ul>
+
+</section>
+
+<!-- ================= MOTORISTAS ================= -->
+
+<section id="motoristas" class="page hidden">
+
+<h1>Cadastro de Motoristas</h1>
+
+<div class="form-grid">
+
+<input id="mNome" placeholder="Nome">
+<input id="mCpf" placeholder="CPF">
+<input id="mCnh" placeholder="CNH">
+<input id="mTelefone" placeholder="Telefone">
+
+</div>
+
+<button onclick="salvarMotorista()">Salvar Motorista</button>
+
+<ul id="listaMotoristas" class="lista"></ul>
+
+</section>
+
+<!-- ================= ABASTECIMENTO ================= -->
+
+<section id="abastecimento" class="page hidden">
+
+<h1>Abastecimento</h1>
+
+<div class="form-grid">
+
+<select id="aVeiculo"></select>
+<select id="aMotorista"></select>
+
+<input id="aData" type="date">
+
+<select id="aCombustivel">
+<option value="">Combustível</option>
+<option>Gasolina</option>
+<option>Gasolina Aditivada</option>
+<option>Etanol</option>
+<option>Diesel</option>
+<option>GNV</option>
+<option>Elétrico</option>
+</select>
+
+<input id="aPreco" type="number" step="0.01" placeholder="Preço/Litro">
+<input id="aQuantidade" type="number" step="0.01" placeholder="Litros">
+
+<input id="aTotal" placeholder="Total Pago" readonly>
+
+<input id="aKmAnterior" placeholder="KM Anterior" readonly>
+<input id="aKmAtual" type="number" placeholder="KM Atual">
+
+<input id="aKmRodado" placeholder="KM Rodado" readonly>
+<input id="aCustoKm" placeholder="Custo por KM" readonly>
+
+</div>
+
+<button onclick="salvarAbastecimento()">Salvar Abastecimento</button>
+
+<button onclick="gerarPDFExecutivo()" class="btn-pdf">📄 Exportar PDF Executivo</button>
+
+<h2 class="titulo-extrato">Extrato Executivo</h2>
+
+<div class="filtros-extrato">
+
+<select id="filtroVeiculo"></select>
+<select id="filtroMotorista"></select>
+
+<input type="date" id="filtroInicio">
+<input type="date" id="filtroFim">
+
+</div>
+
+<div class="resumo-extrato">
+
+<div class="resumo-box">
+<span>Total Gasto</span>
+<strong id="resumoTotal">R$ 0,00</strong>
+</div>
+
+<div class="resumo-box">
+<span>Litros</span>
+<strong id="resumoLitros">0</strong>
+</div>
+
+<div class="resumo-box">
+<span>KM Rodados</span>
+<strong id="resumoKm">0</strong>
+</div>
+
+<div class="resumo-box">
+<span>Custo Médio KM</span>
+<strong id="resumoCustoKm">R$ 0,00</strong>
+</div>
+
+</div>
+
+<table class="tabela-extrato">
+
+<thead>
+<tr>
+<th>Data</th>
+<th>Veículo</th>
+<th>Motorista</th>
+<th>Litros</th>
+<th>Total</th>
+<th>KM</th>
+<th>R$/KM</th>
+<th>Ações</th>
+</tr>
+</thead>
+
+<tbody id="listaAbastecimentos"></tbody>
+
+</table>
+
+</section>
+
+</main>
+
+</div>
+
+</div>
+
+<!-- JS -->
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
