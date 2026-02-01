@@ -448,7 +448,7 @@ aVeiculo?.addEventListener("change", async () => {
   }
 
 });
-function atualizarBIExecutivo(){
+ffunction atualizarBIExecutivo(){
 
   if(!window.biTotal) return;
 
@@ -460,6 +460,8 @@ function atualizarBIExecutivo(){
 
     total += Number(a.total || 0);
     litros += Number(a.litros || 0);
+
+    // AQUI É O PONTO CRÍTICO
     kmRodadoTotal += Number(a.kmRodado || 0);
 
   });
@@ -468,6 +470,8 @@ function atualizarBIExecutivo(){
     total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
   biLitros.textContent = litros.toFixed(1);
+
+  // AGORA MOSTRA SÓ O KM RODADO REAL
   biKm.textContent = kmRodadoTotal.toFixed(0);
 
   const custoKm = kmRodadoTotal > 0 ? total / kmRodadoTotal : 0;
