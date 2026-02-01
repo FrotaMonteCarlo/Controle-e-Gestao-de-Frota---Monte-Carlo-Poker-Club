@@ -11,11 +11,9 @@ const $ = id => document.getElementById(id);
 
 /* ================= LOGIN ================= */
 
-const usuarios =  [
-
-  {usuario: "admin", senha: "201816.Ab", perfil: "admin", nome: "Administrador"}
+const usuarios = [
+  { usuario: "admin", senha: "201816.Ab", perfil: "admin", nome: "Administrador" }
 ];
-
 
 let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
@@ -69,6 +67,7 @@ function verificarSessao() {
 let veiculos = [];
 let motoristas = [];
 let abastecimentos = [];
+let manutencoes = [];
 
 /* ================= INIT ================= */
 
@@ -149,61 +148,40 @@ async function carregarDados() {
 
   try {
 
-    // ================= BUSCA SUPABASE =================
+    const resVeiculos = await db.from("veiculos").select("*");
+    const resMotoristas = await db.from("motoristas").select("*");
+    const resAbastecimentos = await db.from("abastecimentos").select("*");
+    const resManutencoes = await db.from("manutencoes").select("*");
 
-    const { data: v, error: ev } = await db.from("veiculos").select("*");
-    const { data: m, error: em } = await db.from("motoristas").select("*");
-    const { data: a, error: ea } = await db.from("abastecimentos").select("*");
-    const { data: man, error: eman } = await db.from("manutencoes").select("*");
-
-    if (ev || em || ea || eman) {
-      console.error("Erro Supabase:", ev || em || ea || eman);
-      return;
-    }
-
-    // ================= ATUALIZA MEMÓRIA =================
-
-    veiculos = v || [];
-    motoristas = m || [];
-    abastecimentos = a || [];
-    manutencoes = man || [];
-
-    // ================= RENDERS =================
+    veiculos = resVeiculos.data || [];
+    motoristas = resMotoristas.data || [];
+    abastecimentos = resAbastecimentos.data || [];
+    manutencoes = resManutencoes.data || [];
 
     renderVeiculos();
     renderMotoristas();
     renderAbastecimentos();
-    renderManutencoes?.();
-
-    // ================= DASHBOARD =================
+    renderManutencoes();
 
     atualizarDashboard();
-
-    // ================= BI EXECUTIVO =================
-
     atualizarBIExecutivo();
 
-    // ================= GRÁFICOS =================
+    atualizarRankingVeiculos();
+    atualizarRankingMotoristas();
+    atualizarRankingManutencao();
 
     graficoVeiculos();
     graficoMotoristas();
     graficoTopVeiculos();
     graficoTopManutencao();
 
-    // ================= RANKINGS =================
+    console.log("Sistema sincronizado com sucesso");
 
-    atualizarRankingVeiculos();
-    atualizarRankingMotoristas();
-    atualizarRankingManutencao();
+  } catch (erro) {
 
-    console.log("Dados carregados com sucesso");
-
-  } catch (err) {
-
-    console.error("Falha geral carregarDados:", err);
+    console.error("Falha geral carregarDados:", erro);
 
   }
-
 }
 
 /* ================= VEICULOS ================= */
@@ -721,5 +699,20 @@ function graficoTopManutencao() {
       }]
     }
   });
+
+}
+function renderManutencoes() {
+
+  if (!$("listaManutencoes")) return;
+
+  listaManutencoes.innerHTML = manutencoes.map(m => `
+    <tr>
+      <td>${new Date(m.data).toLocaleDateString()}</td>
+      <td>${m.veiculo}</td>
+      <td>${m.categoria}</td>
+      <td>${m.descricao || ""}</td>
+      <td>R$ ${Number(m.valor || 0).toFixed(2)}</td>
+    </tr>
+  `).join("");
 
 }
