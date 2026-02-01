@@ -155,19 +155,22 @@ window.salvarAbastecimento = async function () {
     total: Number(aTotal.value),
 
     kmAnterior: Number(aKmAnterior.value),
-    kmAtual: Number(aKmAtual.value),
+    kmAtual: Number(aKmAtual2.value),
     kmRodado: Number(aKmRodado.value),
     custoKm: Number(aCustoKm.value),
 
+    // IMPORTANTE: usa "data" (igual ao banco)
     data: aData.value
   };
 
-  const { error } = await db.from("abastecimentos").insert([registro]);
+  const { error } = await db
+    .from("abastecimentos")
+    .insert([registro]);
 
   if (error) {
 
-    console.error(error);
-    alert("Erro ao salvar abastecimento");
+    console.error("ERRO SUPABASE:", error);
+    alert("Erro ao salvar abastecimento ❌");
     return;
 
   }
