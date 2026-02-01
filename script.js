@@ -396,14 +396,28 @@ function renderVeiculos() {
 
 function renderMotoristas() {
 
-  listaMotoristas.innerHTML = motoristas.map(m =>
-    `<li>${m.nome}</li>`
-  ).join("");
+  if (!listaMotoristas) return;
 
-  aMotorista.innerHTML =
-    `<option value="">Selecione</option>` +
-    motoristas.map(m => `<option>${m.nome}</option>`).join("");
+  // TABELA EXTRATO
+  listaMotoristas.innerHTML = motoristas.map(m => `
+    <tr>
+      <td>${m.nome || ""}</td>
+      <td>${m.cpf || ""}</td>
+      <td>${m.cnh || ""}</td>
+      <td>${m.telefone || ""}</td>
+    </tr>
+  `).join("");
+
+  // SELECT ABASTECIMENTO
+  if (aMotorista) {
+    aMotorista.innerHTML =
+      `<option value="">Selecione</option>` +
+      motoristas.map(m => `<option>${m.nome}</option>`).join("");
+  }
+
 }
+
+
 
 function renderAbastecimentos() {
 
