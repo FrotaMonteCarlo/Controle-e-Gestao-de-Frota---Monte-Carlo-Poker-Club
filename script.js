@@ -115,7 +115,9 @@ async function carregarDados() {
   renderManutencoes();
 
   atualizarDashboard();
-  atualizarBIExecutivo();   // ← AGORA EXISTE
+
+  // ⚠️ FORÇA BI RECALCULAR SEMPRE
+  atualizarBIExecutivo();
 }
 
 
@@ -151,6 +153,11 @@ function abrirPagina(id) {
   if (page) page.classList.remove("hidden");
   if (btn) btn.classList.add("active");
 
+  // 🔥 QUANDO ABRIR BI, RECARREGA OS CÁLCULOS
+  if (id === "bi") {
+    atualizarBIExecutivo();
+  }
+
 }
 
 
@@ -167,7 +174,7 @@ window.salvarAbastecimento = async function () {
     return;
   }
 
-  // Buscar último KM do veículo
+  // Busca último KM salvo
   const { data: ult } = await db
     .from("abastecimentos")
     .select("kmAtual")
@@ -194,6 +201,17 @@ window.salvarAbastecimento = async function () {
     custoKm,
     data: aData.value
   };
+
+  const { error } = await db.from("abastecimentos").insert([registro]);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar abastecimento");
+    return;
+  }
+
+  await carregarDados();
+};
 
   const { error } = await db.from("abastecimentos").insert([registro]);
 
@@ -328,7 +346,7 @@ function renderAbastecimentos(){
 
     return `
       <tr>
-        <td>${new Date(a.dataISO).toLocaleDateString()}</td>
+        <td>${new Date(a.data).toLocaleDateString()}</td>
         <td>${a.veiculo || ""}</td>
         <td>${a.motorista || ""}</td>
         <td>${litros.toFixed(1)}</td>
@@ -448,43 +466,7 @@ aVeiculo?.addEventListener("change", async () => {
   }
 
 });
-// ================= BI EXECUTIVO =================
 
-function atualizarBI() {
-
-  if (!window.biTotal) return;
-
-  let totalGasto = 0;
-  let litrosTotal = 0;
-  let kmTotal = 0;
-
-  abastecimentos.forEach(a => {
-
-    totalGasto += Number(a.total || 0);
-    litrosTotal += Number(a.litros || 0);
-    kmTotal += Number(a.kmRodado || 0);
-
-  });
-
-  biTotal.textContent =
-    totalGasto.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-
-  biLitros.textContent = litrosTotal.toFixed(1);
-  biKm.textContent = kmTotal.toFixed(0);
-
-  const custoKmMedio =
-    kmTotal > 0 ? totalGasto / kmTotal : 0;
-
-  biCustoKm.textContent =
-    custoKmMedio.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-
-}
 function atualizarBIExecutivo() {
 
   if (!window.biTotal) return;
