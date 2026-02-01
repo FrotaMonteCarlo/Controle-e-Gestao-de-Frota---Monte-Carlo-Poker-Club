@@ -5,6 +5,12 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+let grafV = null;
+let grafM = null;
+let grafTopVeiculos = null;
+let grafTopManutencao = null;
+
+
 /* ================= HELPERS ================= */
 
 const $ = id => document.getElementById(id);
@@ -596,41 +602,37 @@ function graficoVeiculos() {
   });
 
 }
-function graficoMotoristas() {
+function graficoVeiculos() {
 
-  if (!window.grafMotoristas) return;
+  const canvas = document.getElementById("grafVeiculos");
+  if (!canvas) return;
 
   const mapa = {};
 
   abastecimentos.forEach(a => {
-
-    const nome = a.motorista;
+    const placa = a.veiculo;
     const total = Number(a.total) || 0;
-
-    mapa[nome] = (mapa[nome] || 0) + total;
-
+    mapa[placa] = (mapa[placa] || 0) + total;
   });
 
   const labels = Object.keys(mapa);
   const valores = Object.values(mapa);
 
-  if (grafM) grafM.destroy();
+  if (grafV) grafV.destroy();
 
-  grafM = new Chart(grafMotoristas, {
+  grafV = new Chart(canvas, {
     type: "bar",
     data: {
       labels,
       datasets: [{
-        label: "R$ Gasto",
+        label: "Gasto por Veículo (R$)",
         data: valores
       }]
     },
-    options: {
-      responsive: true
-    }
+    options: { responsive: true }
   });
-
 }
+
 function graficoTopVeiculos() {
 
   if (!window.grafTopVeiculos) return;
