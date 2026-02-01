@@ -1,7 +1,7 @@
 /* ================= SUPABASE ================= */
 
 const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
-const SUPABASE_KEY = "SUA_ANON_KEY";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z2JvaGJ5cWZjaHVyaGxzenR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3ODg0MDMsImV4cCI6MjA4NTM2NDQwM30.gKs1x9Y3s86D70uW207jilOYD4MZmk0rpUw6i1QRbaY";
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -11,9 +11,11 @@ const $ = id => document.getElementById(id);
 
 /* ================= LOGIN ================= */
 
-const usuarios = [
-  { usuario: "admin", senha: "123456", perfil: "admin", nome: "Administrador" }
+const usuarios =  [
+
+  {usuario: "admin", senha: "201816.Ab", perfil: "admin", nome: "Administrador"}
 ];
+
 
 let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
