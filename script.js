@@ -236,12 +236,17 @@ window.salvarMotorista = async function () {
 
 window.salvarAbastecimento = async function () {
 
+  const totalCalc = 
+    (Number(aPreco.value)||0) * (Number(aQuantidade.value)||0);
+
+  aTotal.value = totalCalc.toFixed(2);
+
   const registro = {
     veiculo: aVeiculo.value,
     motorista: aMotorista.value,
     preco: Number(aPreco.value) || 0,
     litros: Number(aQuantidade.value) || 0,
-    total: Number(aTotal.value) || 0,
+    total: totalCalc,
     kmAtual: Number(aKmAtual2.value) || 0,
     dataISO: new Date().toISOString()
   };
@@ -250,10 +255,11 @@ window.salvarAbastecimento = async function () {
 
   if(error){
     alert("Erro ao salvar abastecimento");
-    console.log(error);
+    console.error(error);
     return;
   }
 
+  alert("Abastecimento salvo ✔");
   await carregarDados();
 };
 
@@ -263,7 +269,7 @@ window.salvarManutencao = async function () {
   const registro = {
     veiculo: manVeiculo.value,
     categoria: manCategoria.value,
-    descricao: manDescricao.value,
+    descricao: manTipo.value,
     fornecedor: manFornecedor.value,
     valor: Number(manValor.value) || 0,
     km: Number(manKm.value) || 0,
