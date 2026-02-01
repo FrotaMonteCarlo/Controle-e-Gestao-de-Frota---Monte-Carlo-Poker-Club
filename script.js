@@ -403,9 +403,13 @@ function atualizarBIExecutivo() {
 
   abastecimentos.forEach(a => {
 
-    total += Number(a.total || 0);
-    litros += Number(a.litros || 0);
-    km += Number(a.kmRodado || 0);
+    const gasto = Number(a.total) || 0;
+    const lit = Number(a.litros) || 0;
+    const rodado = Number(a.kmRodado) || 0;
+
+    total += gasto;
+    litros += lit;
+    km += rodado;
 
   });
 
@@ -413,10 +417,14 @@ function atualizarBIExecutivo() {
     total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   biLitros.textContent = litros.toFixed(1);
+
   biKm.textContent = km.toFixed(0);
 
   biCustoKm.textContent =
     km > 0
-      ? (total / km).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      ? (total / km).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        })
       : "R$ 0,00";
 }
