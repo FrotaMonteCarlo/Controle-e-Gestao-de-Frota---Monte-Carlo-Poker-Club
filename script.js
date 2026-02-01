@@ -160,7 +160,7 @@ window.salvarAbastecimento = async function () {
 
   const preco = Number(aPreco.value) || 0;
   const litros = Number(aQuantidade.value) || 0;
-  const kmAtual = Number(aKmAtual2.value) || 0;
+  const kmAtual = Number(aKmAtual.value) || 0;
 
   if (!aVeiculo.value || !aMotorista.value || !aData.value) {
     alert("Preencha todos os campos obrigatórios");
@@ -228,34 +228,6 @@ window.salvarMotorista = async function () {
 
   carregarDados();
 };
-
-
-/* ================= SALVAR ABASTECIMENTO ================= */
-
-window.salvarAbastecimento = async function () {
-
-  const registro = {
-    veiculo: aVeiculo.value,
-    motorista: aMotorista.value,
-    preco: Number(aPreco.value),
-    litros: Number(aQuantidade.value),
-    total: Number(aTotal.value),
-    kmAtual: Number(aKmAtual.value),
-    data: aData.value
-
-  };
-
-  const { error } = await db.from("abastecimentos").insert([registro]);
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar abastecimento");
-    return;
-  }
-
-  carregarDados();
-};
-
 
 /* ================= SALVAR MANUTENÇÃO ================= */
 
