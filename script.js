@@ -145,44 +145,47 @@ function abrirPagina(id) {
 
 /* ================= SALVAR VEÍCULO ================= */
 
-window.salvarAbastecimento = async function () {
+wwindow.salvarAbastecimento = async function () {
+
+  const kmAtual = Number(aKmAtual2.value) || 0;
+  const kmAnterior = Number(aKmAnterior.value) || 0;
+
+  const kmRodado = kmAtual - kmAnterior;
+
+  const preco = Number(aPreco.value) || 0;
+  const litros = Number(aQuantidade.value) || 0;
+  const total = preco * litros;
+
+  const custoKm = kmRodado > 0 ? total / kmRodado : 0;
+
+  aTotal.value = total.toFixed(2);
+  aKmRodado.value = kmRodado;
+  aCustoKm.value = custoKm.toFixed(2);
 
   const registro = {
-
     veiculo: aVeiculo.value,
     motorista: aMotorista.value,
-
-    preco: Number(aPreco.value),
-    litros: Number(aQuantidade.value),
-    total: Number(aTotal.value),
-
-    kmAnterior: Number(aKmAnterior.value),
-    kmAtual: Number(aKmAtual2.value),
-    kmRodado: Number(aKmRodado.value),
-    custoKm: Number(aCustoKm.value),
-
-    // IMPORTANTE: usa "data" (igual ao banco)
-    data: aData.value
+    preco: preco,
+    litros: litros,
+    total: total,
+    kmAtual: kmAtual,
+    kmAnterior: kmAnterior,
+    kmRodado: kmRodado,
+    custoKm: custoKm,
+    dataISO: new Date(aData.value).toISOString()
   };
 
-  const { error } = await db
-    .from("abastecimentos")
-    .insert([registro]);
+  const { error } = await db.from("abastecimentos").insert([registro]);
 
-  if (error) {
-
-    console.error("ERRO SUPABASE:", error);
-    alert("Erro ao salvar abastecimento ❌");
+  if(error){
+    alert("Erro ao salvar abastecimento");
+    console.log(error);
     return;
-
   }
-
-  alert("Abastecimento salvo com sucesso ✅");
 
   carregarDados();
 
 };
-
 
 /* ================= SALVAR MOTORISTA ================= */
 
@@ -321,24 +324,25 @@ function renderMotoristas() {
 }
 
 
-function renderAbastecimentos() {
+function renderAbastecimentos(){
 
-  if (!$("listaAbastecimentos")) return;
+  if(!listaAbastecimentos) return;
 
-  listaAbastecimentos.innerHTML = abastecimentos.map(a => `
+  listaAbastecimentos.innerHTML = abastecimentos.map(a=>`
     <tr>
       <td>${new Date(a.dataISO).toLocaleDateString()}</td>
       <td>${a.veiculo}</td>
       <td>${a.motorista}</td>
       <td>${a.litros}</td>
-      <td>R$ ${a.total}</td>
-      <td>${a.kmAtual}</td>
-      <td>-</td>
+      <td>R$ ${a.total.toFixed(2)}</td>
+      <td>${a.kmRodado}</td>
+      <td>R$ ${a.custoKm.toFixed(2)}</td>
       <td>-</td>
     </tr>
   `).join("");
 
 }
+
 
 
 function renderManutencoes() {
@@ -450,24 +454,25 @@ function atualizarBIExecutivo(){
 
   let total = 0;
   let litros = 0;
-  let km = 0;
+  let kmRodadoTotal = 0;
 
   abastecimentos.forEach(a=>{
 
     total += Number(a.total || 0);
     litros += Number(a.litros || 0);
-
-    if(a.kmAtual){
-      km += Number(a.kmAtual);
-    }
+    kmRodadoTotal += Number(a.kmRodado || 0);
 
   });
 
-  biTotal.textContent = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  biLitros.textContent = litros.toFixed(1);
-  biKm.textContent = km;
+  biTotal.textContent =
+    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
-  const custoKm = km > 0 ? total / km : 0;
-  biCustoKm.textContent = custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  biLitros.textContent = litros.toFixed(1);
+  biKm.textContent = kmRodadoTotal.toFixed(0);
+
+  const custoKm = kmRodadoTotal > 0 ? total / kmRodadoTotal : 0;
+
+  biCustoKm.textContent =
+    custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 }
