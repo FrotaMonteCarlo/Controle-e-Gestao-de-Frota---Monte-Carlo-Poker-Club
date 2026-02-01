@@ -1,22 +1,9 @@
-window.fazerLogin = null;
-window.logoutSistema = null;
-
-
-/* ================= SUPABASE INIT ================= */
+/* ================= SUPABASE ================= */
 
 const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z2JvaGJ5cWZjaHVyaGxzenR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3ODg0MDMsImV4cCI6MjA4NTM2NDQwM30.gKs1x9Y3s86D70uW207jilOYD4MZmk0rpUw6i1QRbaY"; // mantenha anon public
+const SUPABASE_KEY = "SUA_ANON_KEY_PUBLICA_AQUI";
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-
-/* ================= LOGIN LOCAL ================= */
-
-const usuarios = [
-  { usuario: "admin", senha: "123456", perfil: "admin", nome: "Administrador" }
-];
-
-let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
 
 /* ================= HELPERS ================= */
@@ -24,31 +11,15 @@ let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 const $ = id => document.getElementById(id);
 
 
-/* ================= SESSION ================= */
-
-function verificarSessao() {
-
-  const login = $("loginScreen");
-  const app = $("appSistema");
-
-  if (!login || !app) return;
-
-  if (usuarioLogado) {
-    login.style.display = "none";
-    app.style.display = "flex";
-    $("nomeUsuario").textContent = usuarioLogado.nome;
-    $("perfilUsuario").textContent = usuarioLogado.perfil.toUpperCase();
-  } else {
-    login.style.display = "flex";
-    app.style.display = "none";
-  }
-
-}
-
-
 /* ================= LOGIN ================= */
 
-window.fazerLogin = function(){
+const usuarios = [
+  { usuario: "admin", senha: "123456", perfil: "admin", nome: "Administrador" }
+];
+
+let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+window.fazerLogin = function () {
 
   const user = loginUser.value;
   const pass = loginPass.value;
@@ -62,29 +33,40 @@ window.fazerLogin = function(){
     return;
   }
 
-  usuarioLogado = {
-    usuario: encontrado.usuario,
-    nome: encontrado.nome,
-    perfil: encontrado.perfil
-  };
+  usuarioLogado = encontrado;
 
   localStorage.setItem("usuarioLogado", JSON.stringify(usuarioLogado));
+
   verificarSessao();
-
 };
-
-
-/* ================= LOGOUT ================= */
 
 window.logoutSistema = function () {
 
-  if (!confirm("Deseja sair?")) return;
-
   localStorage.removeItem("usuarioLogado");
   usuarioLogado = null;
-  verificarSessao();
 
+  verificarSessao();
 };
+
+function verificarSessao() {
+
+  if (!loginScreen || !appSistema) return;
+
+  if (usuarioLogado) {
+
+    loginScreen.style.display = "none";
+    appSistema.style.display = "flex";
+
+    nomeUsuario.textContent = usuarioLogado.nome;
+    perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
+
+  } else {
+
+    loginScreen.style.display = "flex";
+    appSistema.style.display = "none";
+
+  }
+}
 
 
 /* ================= DATA ================= */
@@ -93,6 +75,81 @@ let veiculos = [];
 let motoristas = [];
 let abastecimentos = [];
 let manutencoes = [];
+
+
+/* ================= INIT ================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  mapearInputs();
+
+  verificarSessao();
+  carregarDados();
+  abrirPagina("dashboard");
+
+  document.querySelectorAll(".menu a").forEach(link => {
+    link.onclick = e => {
+      e.preventDefault();
+      abrirPagina(link.dataset.page);
+    };
+  });
+
+});
+
+
+/* ================= MAP INPUTS ================= */
+
+let vPlaca, vMarca, vModelo, vAno, vCategoria, vCor, vRenavan, vKmAtual, vKmOleo;
+let mNome, mCpf, mCnh, mTelefone;
+let aVeiculo, aMotorista, aPreco, aQuantidade, aTotal, aKmAtual2, aKmAnterior, aKmRodado, aCustoKm, aData;
+
+function mapearInputs() {
+
+  vPlaca = $("vPlaca");
+  vMarca = $("vMarca");
+  vModelo = $("vModelo");
+  vAno = $("vAno");
+  vCategoria = $("vCategoria");
+  vCor = $("vCor");
+  vRenavan = $("vRenavan");
+  vKmAtual = $("vKmAtual");
+  vKmOleo = $("vKmOleo");
+
+  mNome = $("mNome");
+  mCpf = $("mCpf");
+  mCnh = $("mCnh");
+  mTelefone = $("mTelefone");
+
+  aVeiculo = $("aVeiculo");
+  aMotorista = $("aMotorista");
+  aPreco = $("aPreco");
+  aQuantidade = $("aQuantidade");
+  aTotal = $("aTotal");
+  aKmAtual2 = $("aKmAtual");
+  aKmAnterior = $("aKmAnterior");
+  aKmRodado = $("aKmRodado");
+  aCustoKm = $("aCustoKm");
+  aData = $("aData");
+
+  aPreco?.addEventListener("input", calcularTotal);
+  aQuantidade?.addEventListener("input", calcularTotal);
+  aKmAtual2?.addEventListener("input", calcularKm);
+}
+
+
+/* ================= SPA ================= */
+
+function abrirPagina(id) {
+
+  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
+  document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+
+  const page = $(id);
+  const link = document.querySelector(`[data-page="${id}"]`);
+
+  if (page) page.classList.remove("hidden");
+  if (link) link.classList.add("active");
+}
 
 
 /* ================= LOAD ================= */
@@ -112,90 +169,93 @@ async function carregarDados() {
   renderVeiculos();
   renderMotoristas();
   renderAbastecimentos();
-  renderManutencoes();
 
   atualizarDashboard();
-
-  // ⚠️ FORÇA BI RECALCULAR SEMPRE
   atualizarBIExecutivo();
 }
 
 
+/* ================= VEICULOS ================= */
 
-/* ================= INIT ================= */
+window.salvarVeiculo = async function () {
 
-document.addEventListener("DOMContentLoaded", () => {
+  const registro = {
+    placa: vPlaca.value,
+    marca: vMarca.value,
+    modelo: vModelo.value,
+    ano: Number(vAno.value),
+    categoria: vCategoria.value,
+    cor: vCor.value,
+    renavan: vRenavan.value,
+    kmAtual: Number(vKmAtual.value),
+    kmOleo: Number(vKmOleo.value)
+  };
 
-  verificarSessao();
-  carregarDados();
-  abrirPagina("dashboard");
+  const { error } = await db.from("veiculos").insert([registro]);
 
-  document.querySelectorAll(".menu a").forEach(link => {
-    link.onclick = e => {
-      e.preventDefault();
-      abrirPagina(link.dataset.page);
-    };
-  });
-
-});
-
-
-/* ================= SPA ================= */
-
-function abrirPagina(id) {
-
-  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
-  document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
-
-  const page = $(id);
-  const btn = document.querySelector(`[data-page="${id}"]`);
-
-  if (page) page.classList.remove("hidden");
-  if (btn) btn.classList.add("active");
-
-  // 🔥 QUANDO ABRIR BI, RECARREGA OS CÁLCULOS
-  if (id === "bi") {
-    atualizarBIExecutivo();
-  }
-
-}
-
-
-/* ================= SALVAR VEÍCULO ================= */
-
-window.salvarAbastecimento = async function () {
-
-  const preco = Number(aPreco.value) || 0;
-  const litros = Number(aQuantidade.value) || 0;
-  const kmAtual = Number(aKmAtual.value) || 0;
-
-  if (!aVeiculo.value || !aMotorista.value || !aData.value) {
-    alert("Preencha todos os campos obrigatórios");
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar veículo");
     return;
   }
 
-  // BUSCA ULTIMO KM DO VEICULO
-  const { data: ultimo } = await db
+  limparVeiculo();
+  carregarDados();
+};
+
+function limparVeiculo() {
+
+  vPlaca.value = "";
+  vMarca.value = "";
+  vModelo.value = "";
+  vAno.value = "";
+  vCategoria.value = "";
+  vCor.value = "";
+  vRenavan.value = "";
+  vKmAtual.value = "";
+  vKmOleo.value = "";
+}
+
+
+/* ================= MOTORISTAS ================= */
+
+window.salvarMotorista = async function () {
+
+  const registro = {
+    nome: mNome.value,
+    cpf: mCpf.value,
+    cnh: mCnh.value,
+    telefone: mTelefone.value
+  };
+
+  const { error } = await db.from("motoristas").insert([registro]);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar motorista");
+    return;
+  }
+
+  carregarDados();
+};
+
+
+/* ================= ABASTECIMENTO ================= */
+
+window.salvarAbastecimento = async function () {
+
+  const preco = Number(aPreco.value);
+  const litros = Number(aQuantidade.value);
+  const kmAtual = Number(aKmAtual2.value);
+
+  const { data } = await db
     .from("abastecimentos")
     .select("kmAtual")
     .eq("veiculo", aVeiculo.value)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
 
-  let kmAnterior = ultimo?.kmAtual;
-
-  // se nunca abasteceu, pega km do cadastro do veículo
-  if (!kmAnterior) {
-
-    const { data: v } = await db
-      .from("veiculos")
-      .select("kmAtual")
-      .eq("placa", aVeiculo.value)
-      .single();
-
-    kmAnterior = v?.kmAtual || 0;
-  }
+  const kmAnterior = data?.[0]?.kmAtual || 0;
 
   const kmRodado = kmAtual - kmAnterior;
   const total = preco * litros;
@@ -226,68 +286,29 @@ window.salvarAbastecimento = async function () {
 };
 
 
-/* ================= SALVAR MOTORISTA ================= */
+/* ================= CALCULOS ================= */
 
-window.salvarMotorista = async function () {
+function calcularTotal() {
 
-  const registro = {
-    nome: mNome.value,
-    cpf: mCpf.value,
-    cnh: mCnh.value,
-    telefone: mTelefone.value
-  };
+  const preco = Number(aPreco.value) || 0;
+  const litros = Number(aQuantidade.value) || 0;
 
-  const { error } = await db.from("motoristas").insert([registro]);
+  aTotal.value = (preco * litros).toFixed(2);
+}
 
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar motorista");
-    return;
+function calcularKm() {
+
+  const atual = Number(aKmAtual2.value) || 0;
+  const anterior = Number(aKmAnterior.value) || 0;
+
+  const rodado = atual - anterior;
+
+  if (rodado > 0) {
+
+    aKmRodado.value = rodado;
+    aCustoKm.value = (Number(aTotal.value) / rodado).toFixed(2);
+
   }
-
-  carregarDados();
-};
-
-/* ================= SALVAR MANUTENÇÃO ================= */
-
-window.salvarManutencao = async function () {
-
-  const registro = {
-    veiculo: manVeiculo.value,
-    categoria: manCategoria.value,
-    descricao: manTipo.value,
-    valor: Number(manValor.value),
-    dataISO: manData.value || new Date().toISOString()
-  };
-
-  const { error } = await db.from("manutencoes").insert([registro]);
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar manutenção");
-    return;
-  }
-
-  carregarDados();
-};
-
-
-/* ================= DASHBOARD ================= */
-
-function atualizarDashboard() {
-
-  if (!$("cVeiculos")) return;
-
-  cVeiculos.textContent = veiculos.length;
-  cMotoristas.textContent = motoristas.length;
-  cAbastecimentos.textContent = abastecimentos.length;
-  cManutencoes.textContent = manutencoes.length;
-
-  const total = abastecimentos.reduce((s, a) => s + (a.total || 0), 0);
-
-  totalCombustivel.textContent =
-    total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
 }
 
 
@@ -297,205 +318,84 @@ function renderVeiculos() {
 
   if (!$("listaVeiculos")) return;
 
-  listaVeiculos.innerHTML = veiculos.map(v => `
-    <li>
-      <b>${v.placa}</b> — ${v.marca} ${v.modelo}
-    </li>
-  `).join("");
+  listaVeiculos.innerHTML = veiculos.map(v =>
+    `<li><b>${v.placa}</b> — ${v.marca} ${v.modelo}</li>`
+  ).join("");
 
-  if ($("aVeiculo")) {
-    aVeiculo.innerHTML =
-      `<option value="">Selecione</option>` +
-      veiculos.map(v => `<option>${v.placa}</option>`).join("");
-  }
-
-  if ($("manVeiculo")) {
-    manVeiculo.innerHTML =
-      `<option value="">Selecione</option>` +
-      veiculos.map(v => `<option>${v.placa}</option>`).join("");
-  }
-
+  aVeiculo.innerHTML =
+    `<option value="">Selecione</option>` +
+    veiculos.map(v => `<option>${v.placa}</option>`).join("");
 }
-
 
 function renderMotoristas() {
 
   if (!$("listaMotoristas")) return;
 
-  listaMotoristas.innerHTML = motoristas.map(m => `
-    <li>${m.nome}</li>
-  `).join("");
+  listaMotoristas.innerHTML = motoristas.map(m =>
+    `<li>${m.nome}</li>`
+  ).join("");
 
-  if ($("aMotorista")) {
-    aMotorista.innerHTML =
-      `<option value="">Selecione</option>` +
-      motoristas.map(m => `<option>${m.nome}</option>`).join("");
-  }
+  aMotorista.innerHTML =
+    `<option value="">Selecione</option>` +
+    motoristas.map(m => `<option>${m.nome}</option>`).join("");
+}
 
+function renderAbastecimentos() {
+
+  if (!$("listaAbastecimentos")) return;
+
+  listaAbastecimentos.innerHTML = abastecimentos.map(a =>
+    `<tr>
+      <td>${new Date(a.data).toLocaleDateString()}</td>
+      <td>${a.veiculo}</td>
+      <td>${a.motorista}</td>
+      <td>${a.litros}</td>
+      <td>R$ ${a.total.toFixed(2)}</td>
+      <td>${a.kmRodado}</td>
+      <td>${a.custoKm.toFixed(2)}</td>
+      <td>-</td>
+    </tr>`
+  ).join("");
 }
 
 
-function renderAbastecimentos(){
+/* ================= DASHBOARD ================= */
 
-  if(!listaAbastecimentos) return;
+function atualizarDashboard() {
 
-  listaAbastecimentos.innerHTML = abastecimentos.map(a=>{
+  cVeiculos.textContent = veiculos.length;
+  cMotoristas.textContent = motoristas.length;
+  cAbastecimentos.textContent = abastecimentos.length;
 
-    const litros = Number(a.litros || 0);
-    const total = Number(a.total || 0);
-    const kmRodado = Number(a.kmRodado || 0);
+  const total = abastecimentos.reduce((s, a) => s + a.total, 0);
 
-    return `
-      <tr>
-        <td>${new Date(a.data).toLocaleDateString()}</td>
-        <td>${a.veiculo || ""}</td>
-        <td>${a.motorista || ""}</td>
-        <td>${litros.toFixed(1)}</td>
-        <td>R$ ${total.toFixed(2)}</td>
-        <td>${kmRodado}</td>
-        <td>${kmRodado > 0 ? (total/kmRodado).toFixed(2) : "0.00"}</td>
-        <td>-</td>
-      </tr>
-    `;
-
-  }).join("");
-
+  totalCombustivel.textContent =
+    total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 
-
-function renderManutencoes() {
-
-  if (!$("listaManutencoes")) return;
-
-  listaManutencoes.innerHTML = manutencoes.map(m => `
-    <tr>
-      <td>${new Date(m.dataISO).toLocaleDateString()}</td>
-      <td>${m.veiculo}</td>
-      <td>${m.categoria}</td>
-      <td>${m.descricao || ""}</td>
-      <td>R$ ${m.valor}</td>
-    </tr>
-  `).join("");
-
-}
-
-
-/* ================= LIMPAR FORM ================= */
-
-function limparVeiculo() {
-
-  vPlaca.value = "";
-  vMarca.value = "";
-  vModelo.value = "";
-  vAno.value = "";
-  vCategoria.value = "";
-  vCor.value = "";
-  vRenavan.value = "";
-  vKmAtual.value = "";
-  vKmOleo.value = "";
-
-}
-/* ================= ABASTECIMENTO AUTO CALC ================= */
-
-function calcularTotal() {
-
-  const preco = Number(aPreco.value) || 0;
-  const litros = Number(aQuantidade.value) || 0;
-
-  const total = preco * litros;
-
-  aTotal.value = total.toFixed(2);
-
-}
-
-function calcularKm() {
-
-  const atual = Number(aKmAtual.value) || 0;
-  const anterior = Number(aKmAnterior.value) || 0;
-
-  const rodado = atual - anterior;
-
-  if (rodado > 0) {
-
-    aKmRodado.value = rodado;
-
-    const custoKm = Number(aTotal.value) / rodado;
-
-    aCustoKm.value = custoKm.toFixed(2);
-
-  }
-
-}
-
-
-/* ================= EVENTOS ================= */
-
-aPreco?.addEventListener("input", calcularTotal);
-aQuantidade?.addEventListener("input", calcularTotal);
-aKmAtual?.addEventListener("input", calcularKm);
-aVeiculo?.addEventListener("change", async () => {
-
-  const placa = aVeiculo.value;
-
-  if (!placa) return;
-
-  // tenta pegar ultimo abastecimento
-  const { data } = await db
-    .from("abastecimentos")
-    .select("kmAtual")
-    .eq("veiculo", placa)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (data && data.length > 0) {
-
-    aKmAnterior.value = data[0].kmAtual;
-    return;
-
-  }
-
-  // se não tiver abastecimento pega km do cadastro do veículo
-  const { data: v } = await db
-    .from("veiculos")
-    .select("kmAtual")
-    .eq("placa", placa)
-    .single();
-
-  if (v) {
-    aKmAnterior.value = v.kmAtual;
-  }
-
-});
+/* ================= BI EXECUTIVO ================= */
 
 function atualizarBIExecutivo() {
 
-  if (!window.biTotal) return;
-
-  let totalGasto = 0;
-  let totalLitros = 0;
-  let totalKmRodado = 0;
+  let total = 0;
+  let litros = 0;
+  let km = 0;
 
   abastecimentos.forEach(a => {
 
-    totalGasto += Number(a.total || 0);
-    totalLitros += Number(a.litros || 0);
-    totalKmRodado += Number(a.kmRodado || 0);
+    total += Number(a.total);
+    litros += Number(a.litros);
+    km += Number(a.kmRodado);
 
   });
 
-  biTotal.textContent =
-    totalGasto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-  biLitros.textContent = totalLitros.toFixed(1);
-
-  biKm.textContent = totalKmRodado.toFixed(0);
+  biTotal.textContent = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  biLitros.textContent = litros.toFixed(1);
+  biKm.textContent = km.toFixed(0);
 
   biCustoKm.textContent =
-    totalKmRodado > 0
-      ? (totalGasto / totalKmRodado).toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL"
-        })
+    km > 0
+      ? (total / km).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
       : "R$ 0,00";
 }
