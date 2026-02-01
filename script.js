@@ -99,10 +99,18 @@ let manutencoes = [];
 
 async function carregarDados() {
 
-  const { data: v } = await db.from("veiculos").select("*");
-  const { data: m } = await db.from("motoristas").select("*");
-  const { data: a } = await db.from("abastecimentos").select("*");
-  const { data: man } = await db.from("manutencoes").select("*");
+  const { data: v, error: ev } = await db.from("veiculos").select("*");
+  const { data: m, error: em } = await db.from("motoristas").select("*");
+  const { data: a, error: ea } = await db
+    .from("abastecimentos")
+    .select("*")
+    .order("data", { ascending: true });
+  const { data: man, error: eMan } = await db.from("manutencoes").select("*");
+
+  if (ev || em || ea || eMan) {
+    console.error("Erro Supabase:", ev || em || ea || eMan);
+    return;
+  }
 
   veiculos = v || [];
   motoristas = m || [];
@@ -115,7 +123,8 @@ async function carregarDados() {
   renderManutencoes();
 
   atualizarDashboard();
-  atualizarBIExecutivo(); 
+  atualizarBIExecutivo();
+
 }
 
 
@@ -158,45 +167,54 @@ function abrirPagina(id) {
 
 window.salvarAbastecimento = async function () {
 
-  const kmAtual = Number(aKmAtual2.value) || 0;
-  const kmAnterior = Number(aKmAnterior.value) || 0;
-
-  const kmRodado = kmAtual - kmAnterior;
-
   const preco = Number(aPreco.value) || 0;
   const litros = Number(aQuantidade.value) || 0;
+  const kmAtual = Number(aKmAtual2.value) || 0;
+
+  if (!aVeiculo.value || !aMotorista.value || !aData.value) {
+    alert("Preencha todos os campos obrigatórios");
+    return;
+  }
+
+  // Buscar último KM do veículo
+  const { data: ult } = await db
+    .from("abastecimentos")
+    .select("kmAtual")
+    .eq("veiculo", aVeiculo.value)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  const kmAnterior = ult?.kmAtual || 0;
+
+  const kmRodado = kmAtual - kmAnterior;
   const total = preco * litros;
-
   const custoKm = kmRodado > 0 ? total / kmRodado : 0;
-
-  aTotal.value = total.toFixed(2);
-  aKmRodado.value = kmRodado;
-  aCustoKm.value = custoKm.toFixed(2);
 
   const registro = {
     veiculo: aVeiculo.value,
     motorista: aMotorista.value,
-    preco: preco,
-    litros: litros,
-    total: total,
-    kmAtual: kmAtual,
-    kmAnterior: kmAnterior,
-    kmRodado: kmRodado,
-    custoKm: custoKm,
-    dataISO: new Date(aData.value).toISOString()
+    preco,
+    litros,
+    total,
+    kmAnterior,
+    kmAtual,
+    kmRodado,
+    custoKm,
+    data: aData.value
   };
 
   const { error } = await db.from("abastecimentos").insert([registro]);
 
-  if(error){
+  if (error) {
     alert("Erro ao salvar abastecimento");
-    console.log(error);
+    console.error(error);
     return;
   }
 
-  carregarDados();
-
+  await carregarDados();
 };
+
 
 /* ================= SALVAR MOTORISTA ================= */
 
@@ -469,32 +487,38 @@ aVeiculo?.addEventListener("change", async () => {
 });
 // ================= BI EXECUTIVO =================
 
-function atualizarBIExecutivo(){
+function atualizarBI() {
 
-  if(!window.biTotal) return;
+  if (!window.biTotal) return;
 
-  let total = 0;
-  let litros = 0;
-  let kmRodadoTotal = 0;
+  let totalGasto = 0;
+  let litrosTotal = 0;
+  let kmTotal = 0;
 
   abastecimentos.forEach(a => {
 
-    total += Number(a.total || 0);
-    litros += Number(a.litros || 0);
-    kmRodadoTotal += Number(a.kmRodado || 0);
+    totalGasto += Number(a.total || 0);
+    litrosTotal += Number(a.litros || 0);
+    kmTotal += Number(a.kmRodado || 0);
 
   });
 
   biTotal.textContent =
-    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    totalGasto.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 
-  biLitros.textContent = litros.toFixed(1);
+  biLitros.textContent = litrosTotal.toFixed(1);
+  biKm.textContent = kmTotal.toFixed(0);
 
-  biKm.textContent = kmRodadoTotal.toFixed(0);
-
-  const custoKm = kmRodadoTotal > 0 ? total / kmRodadoTotal : 0;
+  const custoKmMedio =
+    kmTotal > 0 ? totalGasto / kmTotal : 0;
 
   biCustoKm.textContent =
-    custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    custoKmMedio.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 
 }
