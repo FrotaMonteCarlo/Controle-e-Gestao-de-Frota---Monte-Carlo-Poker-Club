@@ -1,11 +1,9 @@
 /* ================= SUPABASE INIT SAFE ================= */
 
-if (!window.SUPABASE_READY) {
-
-  window.SUPABASE_READY = true;
+if (!window.db) {
 
   const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_DrsxYXH_bJhWWgMaRdTSng_QyxiaVEB";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z2JvaGJ5cWZjaHVyaGxzenR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3ODg0MDMsImV4cCI6MjA4NTM2NDQwM30.gKs1x9Y3s86D70uW207jilOYD4MZmk0rpUw6i1QRbaY";
 
   window.db = supabase.createClient(
     SUPABASE_URL,
@@ -13,7 +11,6 @@ if (!window.SUPABASE_READY) {
   );
 
 }
-
 /* ================= LOGOUT HTML COMPAT ================= */
 
 window.logoutSistema = function () {
@@ -64,19 +61,15 @@ function verificarSessao() {
 
 window.fazerLogin = function () {
 
-  const userInput = document.getElementById("loginUser");
-  const passInput = document.getElementById("loginPass");
-  const erro = document.getElementById("loginErro");
-
-  const user = userInput.value;
-  const pass = passInput.value;
+  const user = loginUser.value;
+  const pass = loginPass.value;
 
   const encontrado = usuarios.find(u =>
     u.usuario === user && u.senha === pass
   );
 
   if (!encontrado) {
-    erro.textContent = "Usuário ou senha inválidos";
+    loginErro.textContent = "Usuário ou senha inválidos";
     return;
   }
 
@@ -87,7 +80,6 @@ window.fazerLogin = function () {
   };
 
   localStorage.setItem("usuarioLogado", JSON.stringify(usuarioLogado));
-
   verificarSessao();
 };
 
@@ -107,7 +99,7 @@ window.logout = function () {
 
 const $ = id => document.getElementById(id);
 
-/* ================= STORAGE LOCAL (FALLBACK) ================= */
+/* ================= STORAGE ================= */
 
 let veiculos = [];
 let motoristas = [];
@@ -139,40 +131,17 @@ async function carregarDados() {
 
 db.channel("sync-frota")
 
-.on(
-  "postgres_changes",
-  { event: "*", schema: "public", table: "veiculos" },
-  () => carregarDados()
-)
-
-.on(
-  "postgres_changes",
-  { event: "*", schema: "public", table: "motoristas" },
-  () => carregarDados()
-)
-
-.on(
-  "postgres_changes",
-  { event: "*", schema: "public", table: "abastecimentos" },
-  () => carregarDados()
-)
-
-.on(
-  "postgres_changes", 
-  { event: "*", schema: "public", table: "manutencoes" },
-  () => carregarDados()
-)
+.on("postgres_changes",{event:"*",schema:"public",table:"veiculos"},carregarDados)
+.on("postgres_changes",{event:"*",schema:"public",table:"motoristas"},carregarDados)
+.on("postgres_changes",{event:"*",schema:"public",table:"abastecimentos"},carregarDados)
+.on("postgres_changes",{event:"*",schema:"public",table:"manutencoes"},carregarDados)
 
 .subscribe();
 
-
 /* ================= VARS ================= */
 
-let grafV = null, grafM = null, grafTopVeiculos = null;
-
-let aVeiculo, aMotorista, aPreco, aQuantidade, aTotal;
-let aKmAnterior, aKmAtual2, aKmRodado, aCustoKm, aData;
-let manVeiculo;
+let grafV=null, grafM=null;
+let aVeiculo,aMotorista,aPreco,aQuantidade,aTotal,aKmAtual2,aData,manVeiculo;
 
 /* ================= INIT ================= */
 
@@ -180,25 +149,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   verificarSessao();
 
-  aVeiculo = $("aVeiculo");
-  aMotorista = $("aMotorista");
-  aPreco = $("aPreco");
-  aQuantidade = $("aQuantidade");
-  aTotal = $("aTotal");
-  aKmAtual2 = $("aKmAtual");
-  aData = $("aData");
-  manVeiculo = $("manVeiculo");
+  aVeiculo=$("aVeiculo");
+  aMotorista=$("aMotorista");
+  aPreco=$("aPreco");
+  aQuantidade=$("aQuantidade");
+  aTotal=$("aTotal");
+  aKmAtual2=$("aKmAtual");
+  aData=$("aData");
+  manVeiculo=$("manVeiculo");
 
   carregarDados();
   abrirPagina("dashboard");
 
   document.querySelectorAll(".menu a").forEach(link => {
-
     link.onclick = e => {
       e.preventDefault();
       abrirPagina(link.dataset.page);
     };
-
   });
 
 });
@@ -218,72 +185,72 @@ function abrirPagina(id) {
 
 }
 
-/* ================= CRUD SUPABASE ================= */
+/* ================= CRUD ================= */
 
 window.salvarVeiculo = async function () {
 
-  const registro = {
-    placa: vPlaca.value,
-    marca: vMarca.value,
-    modelo: vModelo.value,
-    ano: vAno.value,
-    categoria: vCategoria.value,
-    cor: vCor.value,
-    renavan: vRenavan.value,
-    kmAtual: Number(vKmAtual.value) || 0,
-    kmOleo: Number(vKmOleo.value) || 0
-  };
+ alert("CLIQUE OK — função chamada");
 
-  await db.from("veiculos").insert([registro]);
+  const registro = {
+  }
+  await db.from("veiculos").insert([{
+    placa:vPlaca.value,
+    marca:vMarca.value,
+    modelo:vModelo.value,
+    ano:vAno.value,
+    categoria:vCategoria.value,
+    cor:vCor.value,
+    renavan:vRenavan.value,
+    kmAtual:Number(vKmAtual.value)||0,
+    kmOleo:Number(vKmOleo.value)||0
+  }]);
+
 };
 
 window.salvarMotorista = async function () {
 
-  const registro = {
-    nome: mNome.value,
-    cpf: mCpf.value,
-    cnh: mCnh.value,
-    telefone: mTelefone.value
-  };
+  await db.from("motoristas").insert([{
+    nome:mNome.value,
+    cpf:mCpf.value,
+    cnh:mCnh.value,
+    telefone:mTelefone.value
+  }]);
 
-  await db.from("motoristas").insert([registro]);
 };
 
 window.salvarAbastecimento = async function () {
 
-  const registro = {
-    veiculo: aVeiculo.value,
-    motorista: aMotorista.value,
-    preco: Number(aPreco.value) || 0,
-    litros: Number(aQuantidade.value) || 0,
-    total: Number(aTotal.value) || 0,
-    kmAtual: Number(aKmAtual2.value) || 0,
-    dataISO: new Date().toISOString()
-  };
+  await db.from("abastecimentos").insert([{
+    veiculo:aVeiculo.value,
+    motorista:aMotorista.value,
+    preco:Number(aPreco.value)||0,
+    litros:Number(aQuantidade.value)||0,
+    total:Number(aTotal.value)||0,
+    kmAtual:Number(aKmAtual2.value)||0,
+    dataISO:new Date().toISOString()
+  }]);
 
-  await db.from("abastecimentos").insert([registro]);
 };
 
 window.salvarManutencao = async function () {
 
-  const registro = {
-    veiculo: manVeiculo.value,
-    categoria: manCategoria.value,
-    descricao: manDescricao.value,
-    fornecedor: manFornecedor.value,
-    valor: Number(manValor.value) || 0,
-    km: Number(manKm.value) || 0,
-    dataISO: new Date().toISOString()
-  };
+  await db.from("manutencoes").insert([{
+    veiculo:manVeiculo.value,
+    categoria:manCategoria.value,
+    descricao:manDescricao.value,
+    fornecedor:manFornecedor.value,
+    valor:Number(manValor.value)||0,
+    km:Number(manKm.value)||0,
+    dataISO:new Date().toISOString()
+  }]);
 
-  await db.from("manutencoes").insert([registro]);
 };
 
 /* ================= DASHBOARD ================= */
 
 function atualizarDashboard() {
 
-  if (!window.cVeiculos) return;
+  if(!window.cVeiculos) return;
 
   cVeiculos.textContent = veiculos.length;
   cMotoristas.textContent = motoristas.length;
@@ -291,30 +258,29 @@ function atualizarDashboard() {
   cManutencoes.textContent = manutencoes.length;
 
   totalCombustivel.textContent =
-    abastecimentos.reduce((s, a) => s + a.total, 0)
-      .toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    abastecimentos.reduce((s,a)=>s+a.total,0)
+    .toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 }
 
 /* ================= TV MODE ================= */
 
-function ativarModoTV() {
+function ativarModoTV(){
 
   const btn = document.getElementById("btnTV");
+  if(!btn) return;
 
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
+  btn.onclick = ()=>{
 
     document.body.classList.toggle("tv-mode");
 
-    if (!document.fullscreenElement) {
+    if(!document.fullscreenElement){
       document.documentElement.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
 
-  });
+  };
 
 }
 
