@@ -174,16 +174,28 @@ window.salvarAbastecimento = async function () {
     return;
   }
 
-  // Busca último KM salvo
-  const { data: ult } = await db
+  // BUSCA ULTIMO KM DO VEICULO
+  const { data: ultimo } = await db
     .from("abastecimentos")
     .select("kmAtual")
     .eq("veiculo", aVeiculo.value)
     .order("created_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  const kmAnterior = ult?.kmAtual || 0;
+  let kmAnterior = ultimo?.kmAtual;
+
+  // se nunca abasteceu, pega km do cadastro do veículo
+  if (!kmAnterior) {
+
+    const { data: v } = await db
+      .from("veiculos")
+      .select("kmAtual")
+      .eq("placa", aVeiculo.value)
+      .single();
+
+    kmAnterior = v?.kmAtual || 0;
+  }
 
   const kmRodado = kmAtual - kmAnterior;
   const total = preco * litros;
@@ -210,18 +222,7 @@ window.salvarAbastecimento = async function () {
     return;
   }
 
-  await carregarDados();
-};
-
-  const { error } = await db.from("abastecimentos").insert([registro]);
-
-  if (error) {
-    alert("Erro ao salvar abastecimento");
-    console.error(error);
-    return;
-  }
-
-  await carregarDados();
+  carregarDados();
 };
 
 
@@ -477,17 +478,12 @@ function atualizarBIExecutivo() {
 
   abastecimentos.forEach(a => {
 
-    const total = Number(a.total) || 0;
-    const litros = Number(a.litros) || 0;
-    const km = Number(a.kmRodado) || 0;
-
-    totalGasto += total;
-    totalLitros += litros;
-    totalKmRodado += km;
+    totalGasto += Number(a.total || 0);
+    totalLitros += Number(a.litros || 0);
+    totalKmRodado += Number(a.kmRodado || 0);
 
   });
 
-  // KPIs superiores
   biTotal.textContent =
     totalGasto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -497,8 +493,9 @@ function atualizarBIExecutivo() {
 
   biCustoKm.textContent =
     totalKmRodado > 0
-      ? (totalGasto / totalKmRodado)
-          .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      ? (totalGasto / totalKmRodado).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        })
       : "R$ 0,00";
-
 }
