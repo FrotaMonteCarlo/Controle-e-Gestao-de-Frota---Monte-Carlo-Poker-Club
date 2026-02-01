@@ -88,23 +88,25 @@ let manutencoes = [];
 
 async function carregarDados() {
 
-  const v = await db.from("veiculos").select("*");
-  const m = await db.from("motoristas").select("*");
-  const a = await db.from("abastecimentos").select("*");
-  const man = await db.from("manutencoes").select("*");
+  const { data: v } = await db.from("veiculos").select("*");
+  const { data: m } = await db.from("motoristas").select("*");
+  const { data: a } = await db.from("abastecimentos").select("*");
+  const { data: man } = await db.from("manutencoes").select("*");
 
-  veiculos = v.data || [];
-  motoristas = m.data || [];
-  abastecimentos = a.data || [];
-  manutencoes = man.data || [];
+  veiculos = v || [];
+  motoristas = m || [];
+  abastecimentos = a || [];
+  manutencoes = man || [];
 
   renderVeiculos();
   renderMotoristas();
   renderAbastecimentos();
   renderManutencoes();
-  atualizarDashboard();
 
+  atualizarDashboard();
+  atualizarBIExecutivo(); 
 }
+
 
 
 /* ================= INIT ================= */
@@ -442,3 +444,30 @@ aVeiculo?.addEventListener("change", async () => {
   }
 
 });
+function atualizarBIExecutivo(){
+
+  if(!window.biTotal) return;
+
+  let total = 0;
+  let litros = 0;
+  let km = 0;
+
+  abastecimentos.forEach(a=>{
+
+    total += Number(a.total || 0);
+    litros += Number(a.litros || 0);
+
+    if(a.kmAtual){
+      km += Number(a.kmAtual);
+    }
+
+  });
+
+  biTotal.textContent = total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  biLitros.textContent = litros.toFixed(1);
+  biKm.textContent = km;
+
+  const custoKm = km > 0 ? total / km : 0;
+  biCustoKm.textContent = custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+}
