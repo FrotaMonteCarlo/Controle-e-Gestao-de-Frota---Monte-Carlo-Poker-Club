@@ -1,3 +1,7 @@
+window.fazerLogin = null;
+window.logoutSistema = null;
+
+
 /* ================= SUPABASE INIT ================= */
 
 const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
@@ -44,22 +48,29 @@ function verificarSessao() {
 
 /* ================= LOGIN ================= */
 
-window.fazerLogin = function () {
+window.fazerLogin = function(){
 
-  const u = loginUser.value;
-  const s = loginPass.value;
+  const user = loginUser.value;
+  const pass = loginPass.value;
 
-  const ok = usuarios.find(x => x.usuario === u && x.senha === s);
+  const encontrado = usuarios.find(u =>
+    u.usuario === user && u.senha === pass
+  );
 
-  if (!ok) {
+  if (!encontrado) {
     loginErro.textContent = "Usuário ou senha inválidos";
     return;
   }
 
-  usuarioLogado = ok;
-  localStorage.setItem("usuarioLogado", JSON.stringify(ok));
+  usuarioLogado = {
+    usuario: encontrado.usuario,
+    nome: encontrado.nome,
+    perfil: encontrado.perfil
+  };
 
+  localStorage.setItem("usuarioLogado", JSON.stringify(usuarioLogado));
   verificarSessao();
+
 };
 
 
@@ -448,7 +459,9 @@ aVeiculo?.addEventListener("change", async () => {
   }
 
 });
-ffunction atualizarBIExecutivo(){
+// ================= BI EXECUTIVO =================
+
+function atualizarBIExecutivo(){
 
   if(!window.biTotal) return;
 
@@ -456,12 +469,10 @@ ffunction atualizarBIExecutivo(){
   let litros = 0;
   let kmRodadoTotal = 0;
 
-  abastecimentos.forEach(a=>{
+  abastecimentos.forEach(a => {
 
     total += Number(a.total || 0);
     litros += Number(a.litros || 0);
-
-    // AQUI É O PONTO CRÍTICO
     kmRodadoTotal += Number(a.kmRodado || 0);
 
   });
@@ -471,7 +482,6 @@ ffunction atualizarBIExecutivo(){
 
   biLitros.textContent = litros.toFixed(1);
 
-  // AGORA MOSTRA SÓ O KM RODADO REAL
   biKm.textContent = kmRodadoTotal.toFixed(0);
 
   const custoKm = kmRodadoTotal > 0 ? total / kmRodadoTotal : 0;
@@ -480,3 +490,4 @@ ffunction atualizarBIExecutivo(){
     custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 }
+
