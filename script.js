@@ -189,62 +189,98 @@ function abrirPagina(id) {
 
 window.salvarVeiculo = async function () {
 
- alert("CLIQUE OK — função chamada");
-
   const registro = {
-  }
-  await db.from("veiculos").insert([{
-    placa:vPlaca.value,
-    marca:vMarca.value,
-    modelo:vModelo.value,
-    ano:vAno.value,
-    categoria:vCategoria.value,
-    cor:vCor.value,
-    renavan:vRenavan.value,
-    kmAtual:Number(vKmAtual.value)||0,
-    kmOleo:Number(vKmOleo.value)||0
-  }]);
+    placa: vPlaca.value,
+    marca: vMarca.value,
+    modelo: vModelo.value,
+    ano: vAno.value,
+    categoria: vCategoria.value,
+    cor: vCor.value,
+    renavan: vRenavan.value,
+    kmAtual: Number(vKmAtual.value) || 0,
+    kmOleo: Number(vKmOleo.value) || 0
+  };
 
+  const { error } = await db.from("veiculos").insert([registro]);
+
+  if(error){
+    alert("Erro ao salvar veículo");
+    console.log(error);
+    return;
+  }
+
+  await carregarDados();
 };
+
 
 window.salvarMotorista = async function () {
 
-  await db.from("motoristas").insert([{
-    nome:mNome.value,
-    cpf:mCpf.value,
-    cnh:mCnh.value,
-    telefone:mTelefone.value
-  }]);
+  const registro = {
+    nome: mNome.value,
+    cpf: mCpf.value,
+    cnh: mCnh.value,
+    telefone: mTelefone.value
+  };
 
+  const { error } = await db.from("motoristas").insert([registro]);
+
+  if(error){
+    alert("Erro ao salvar motorista");
+    console.log(error);
+    return;
+  }
+
+  await carregarDados();
 };
+
 
 window.salvarAbastecimento = async function () {
 
-  await db.from("abastecimentos").insert([{
-    veiculo:aVeiculo.value,
-    motorista:aMotorista.value,
-    preco:Number(aPreco.value)||0,
-    litros:Number(aQuantidade.value)||0,
-    total:Number(aTotal.value)||0,
-    kmAtual:Number(aKmAtual2.value)||0,
-    dataISO:new Date().toISOString()
-  }]);
+  const registro = {
+    veiculo: aVeiculo.value,
+    motorista: aMotorista.value,
+    preco: Number(aPreco.value) || 0,
+    litros: Number(aQuantidade.value) || 0,
+    total: Number(aTotal.value) || 0,
+    kmAtual: Number(aKmAtual2.value) || 0,
+    dataISO: new Date().toISOString()
+  };
 
+  const { error } = await db.from("abastecimentos").insert([registro]);
+
+  if(error){
+    alert("Erro ao salvar abastecimento");
+    console.log(error);
+    return;
+  }
+
+  await carregarDados();
 };
+
 
 window.salvarManutencao = async function () {
 
-  await db.from("manutencoes").insert([{
-    veiculo:manVeiculo.value,
-    categoria:manCategoria.value,
-    descricao:manDescricao.value,
-    fornecedor:manFornecedor.value,
-    valor:Number(manValor.value)||0,
-    km:Number(manKm.value)||0,
-    dataISO:new Date().toISOString()
-  }]);
+  const registro = {
+    veiculo: manVeiculo.value,
+    categoria: manCategoria.value,
+    descricao: manDescricao.value,
+    fornecedor: manFornecedor.value,
+    valor: Number(manValor.value) || 0,
+    km: Number(manKm.value) || 0,
+    dataISO: new Date().toISOString()
+  };
 
+  const { error } = await db.from("manutencoes").insert([registro]);
+
+  if(error){
+    alert("Erro ao salvar manutenção");
+    console.log(error);
+    return;
+  }
+
+  await carregarDados();
 };
+
 
 /* ================= DASHBOARD ================= */
 
@@ -285,3 +321,76 @@ function ativarModoTV(){
 }
 
 document.addEventListener("DOMContentLoaded", ativarModoTV);
+function renderVeiculos(){
+
+  if(!listaVeiculos) return;
+
+  listaVeiculos.innerHTML = veiculos.map(v=>`
+    <li>
+      <b>${v.placa}</b> — ${v.marca} ${v.modelo} (${v.ano})
+    </li>
+  `).join("");
+
+  if(aVeiculo){
+    aVeiculo.innerHTML = 
+      '<option value="">Selecione</option>' +
+      veiculos.map(v=>`<option>${v.placa}</option>`).join("");
+  }
+
+  if(manVeiculo){
+    manVeiculo.innerHTML = 
+      '<option value="">Selecione</option>' +
+      veiculos.map(v=>`<option>${v.placa}</option>`).join("");
+  }
+
+}
+function renderMotoristas(){
+
+  if(!listaMotoristas) return;
+
+  listaMotoristas.innerHTML = motoristas.map(m=>`
+    <li>
+      <b>${m.nome}</b> — ${m.telefone || ""}
+    </li>
+  `).join("");
+
+  if(aMotorista){
+    aMotorista.innerHTML =
+      '<option value="">Selecione</option>' +
+      motoristas.map(m=>`<option>${m.nome}</option>`).join("");
+  }
+
+}
+function renderAbastecimentos(){
+
+  if(!listaAbastecimentos) return;
+
+  listaAbastecimentos.innerHTML = abastecimentos.map(a=>`
+    <tr>
+      <td>${new Date(a.dataISO).toLocaleDateString()}</td>
+      <td>${a.veiculo}</td>
+      <td>${a.motorista}</td>
+      <td>${a.litros}</td>
+      <td>R$ ${a.total.toFixed(2)}</td>
+      <td>${a.kmAtual}</td>
+      <td>-</td>
+      <td>-</td>
+    </tr>
+  `).join("");
+
+}
+function renderManutencoes(){
+
+  if(!listaManutencoes) return;
+
+  listaManutencoes.innerHTML = manutencoes.map(m=>`
+    <tr>
+      <td>${new Date(m.dataISO).toLocaleDateString()}</td>
+      <td>${m.veiculo}</td>
+      <td>${m.categoria}</td>
+      <td>${m.descricao || ""}</td>
+      <td>R$ ${m.valor.toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+}
