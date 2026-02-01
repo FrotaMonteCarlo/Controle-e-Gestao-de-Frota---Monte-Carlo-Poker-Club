@@ -413,14 +413,16 @@ function atualizarBIExecutivo() {
 
   });
 
-  biTotal.textContent =
+  document.getElementById("biTotal").textContent =
     total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  biLitros.textContent = litros.toFixed(1);
+  document.getElementById("biLitros").textContent =
+    litros.toFixed(1);
 
-  biKm.textContent = km.toFixed(0);
+  document.getElementById("biKm").textContent =
+    km.toFixed(0);
 
-  biCustoKm.textContent =
+  document.getElementById("biCustoKm").textContent =
     km > 0
       ? (total / km).toLocaleString("pt-BR", {
           style: "currency",
