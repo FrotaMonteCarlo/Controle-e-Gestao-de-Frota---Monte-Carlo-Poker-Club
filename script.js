@@ -99,18 +99,10 @@ let manutencoes = [];
 
 async function carregarDados() {
 
-  const { data: v, error: ev } = await db.from("veiculos").select("*");
-  const { data: m, error: em } = await db.from("motoristas").select("*");
-  const { data: a, error: ea } = await db
-    .from("abastecimentos")
-    .select("*")
-    .order("data", { ascending: true });
-  const { data: man, error: eMan } = await db.from("manutencoes").select("*");
-
-  if (ev || em || ea || eMan) {
-    console.error("Erro Supabase:", ev || em || ea || eMan);
-    return;
-  }
+  const { data: v } = await db.from("veiculos").select("*");
+  const { data: m } = await db.from("motoristas").select("*");
+  const { data: a } = await db.from("abastecimentos").select("*");
+  const { data: man } = await db.from("manutencoes").select("*");
 
   veiculos = v || [];
   motoristas = m || [];
@@ -123,8 +115,7 @@ async function carregarDados() {
   renderManutencoes();
 
   atualizarDashboard();
-  atualizarBIExecutivo();
-
+  atualizarBIExecutivo();   // ← AGORA EXISTE
 }
 
 
@@ -520,5 +511,40 @@ function atualizarBI() {
       style: "currency",
       currency: "BRL"
     });
+
+}
+function atualizarBIExecutivo() {
+
+  if (!window.biTotal) return;
+
+  let totalGasto = 0;
+  let totalLitros = 0;
+  let totalKmRodado = 0;
+
+  abastecimentos.forEach(a => {
+
+    const total = Number(a.total) || 0;
+    const litros = Number(a.litros) || 0;
+    const km = Number(a.kmRodado) || 0;
+
+    totalGasto += total;
+    totalLitros += litros;
+    totalKmRodado += km;
+
+  });
+
+  // KPIs superiores
+  biTotal.textContent =
+    totalGasto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  biLitros.textContent = totalLitros.toFixed(1);
+
+  biKm.textContent = totalKmRodado.toFixed(0);
+
+  biCustoKm.textContent =
+    totalKmRodado > 0
+      ? (totalGasto / totalKmRodado)
+          .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      : "R$ 0,00";
 
 }
