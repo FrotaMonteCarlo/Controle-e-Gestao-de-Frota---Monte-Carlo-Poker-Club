@@ -281,44 +281,52 @@ Monte Carlo — Controle Corporativo e Gestão de Frota
 
 <div class="form-grid">
 
-<select id="manVeiculo">
-<option value="">Selecione Veículo</option>
-</select>
+  <select id="manVeiculo">
+    <option value="">Selecione Veículo</option>
+  </select>
 
-<select id="manCategoria">
-<option value="">Categoria</option>
-<option value="Preventiva">Preventiva</option>
-<option value="Corretiva">Corretiva</option>
-<option value="Troca de Óleo">Troca de Óleo</option>
-<option value="Freios">Freios</option>
-<option value="Suspensão">Suspensão</option>
-<option value="Pneus">Pneus</option>
-<option value="Elétrica">Elétrica</option>
-<option value="Motor">Motor</option>
-<option value="Outros">Outros</option>
-</select>
+  <select id="manCategoria">
+    <option value="">Categoria</option>
+    <option value="Preventiva">Preventiva</option>
+    <option value="Corretiva">Corretiva</option>
+    <option value="Troca de Óleo">Troca de Óleo</option>
+    <option value="Freios">Freios</option>
+    <option value="Suspensão">Suspensão</option>
+    <option value="Pneus">Pneus</option>
+    <option value="Elétrica">Elétrica</option>
+    <option value="Motor">Motor</option>
+    <option value="Outros">Outros</option>
+  </select>
 
-<input id="manTipo" placeholder="Descrição da manutenção">
+  <!-- 🔥 PADRONIZADO PARA BATER COM O JS -->
+  <input id="manDescricao" placeholder="Descrição da manutenção">
 
-<input id="manValor" type="number" step="0.01" placeholder="Valor R$">
+  <input id="manValor" type="number" step="0.01" placeholder="Valor R$">
 
-<input id="manData" type="date">
+  <input id="manData" type="date">
 
 </div>
 
-
-<button onclick="salvarManutencao()">Salvar Manutenção</button>
+<!-- ✅ BOTÃO CORRETO -->
+<button 
+  id="btnSalvarManutencao"
+  type="button"
+  onclick="salvarManutencao()"
+  class="btn-primary"
+  style="margin-top:15px"
+>
+  Salvar Manutenção
+</button>
 
 <table class="tabela-extrato" style="margin-top:20px">
 
 <thead>
 <tr>
-<th>Data</th>
-<th>Veículo</th>
-<th>Categoria</th>
-<th>Descrição</th>
-<th>Valor</th>
-
+  <th>Data</th>
+  <th>Veículo</th>
+  <th>Categoria</th>
+  <th>Descrição</th>
+  <th>Valor</th>
 </tr>
 </thead>
 

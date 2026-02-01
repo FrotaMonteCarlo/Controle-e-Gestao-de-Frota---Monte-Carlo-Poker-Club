@@ -92,6 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
 let vPlaca, vMarca, vModelo, vAno, vCategoria, vCor, vRenavan, vKmAtual, vKmOleo;
 let mNome, mCpf, mCnh, mTelefone;
 let aVeiculo, aMotorista, aPreco, aQuantidade, aTotal, aKmAtual, aKmAnterior, aKmRodado, aCustoKm, aData;
+let manVeiculo, manCategoria, manDescricao, manValor, manData;
+
 
 function mapearInputs() {
 
@@ -120,6 +122,13 @@ function mapearInputs() {
   aKmRodado = $("aKmRodado");
   aCustoKm = $("aCustoKm");
   aData = $("aData");
+
+  manVeiculo = $("manVeiculo");
+  manCategoria = $("manCategoria");
+  manDescricao = $("manDescricao");
+  manValor = $("manValor");
+  manData = $("manData");
+
 
   aPreco?.addEventListener("input", calcularTotal);
   aQuantidade?.addEventListener("input", calcularTotal);
@@ -368,10 +377,22 @@ function renderVeiculos() {
     `<li><b>${v.placa}</b> — ${v.marca} ${v.modelo}</li>`
   ).join("");
 
-  aVeiculo.innerHTML =
+  const options =
     `<option value="">Selecione</option>` +
-    veiculos.map(v => `<option>${v.placa}</option>`).join("");
+    veiculos.map(v => `<option value="${v.placa}">${v.placa}</option>`).join("");
+
+  // abastecimento
+  if (aVeiculo) {
+    aVeiculo.innerHTML = options;
+  }
+
+  // manutenção
+  if (manVeiculo) {
+    manVeiculo.innerHTML = options;
+  }
+
 }
+
 
 function renderMotoristas() {
 
@@ -753,5 +774,50 @@ function graficoMotoristas() {
       responsive: true
     }
   });
+
+}
+/* ================= MANUTENÇÃO ================= */
+
+window.salvarManutencao = async function () {
+
+  const veiculo = manVeiculo.value;
+  const categoria = manCategoria.value;
+  const descricao = manDescricao.value;
+  const valor = Number(manValor.value);
+  const data = manData.value;
+
+  if (!veiculo || !categoria || !valor || !data) {
+    alert("Preencha todos os campos da manutenção");
+    return;
+  }
+
+  const registro = {
+    veiculo,
+    categoria,
+    descricao,
+    valor,
+    data
+  };
+
+  const { error } = await db.from("manutencoes").insert([registro]);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar manutenção");
+    return;
+  }
+
+  limparManutencao();
+  carregarDados();
+
+  alert("Manutenção salva com sucesso ✅");
+};
+function limparManutencao() {
+
+  manVeiculo.value = "";
+  manCategoria.value = "";
+  manDescricao.value = "";
+  manValor.value = "";
+  manData.value = "";
 
 }
