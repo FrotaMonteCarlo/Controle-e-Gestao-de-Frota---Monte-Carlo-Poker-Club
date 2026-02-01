@@ -161,6 +161,9 @@ async function carregarDados() {
 
   atualizarDashboard();
   atualizarBIExecutivo();
+  atualizarRankingVeiculos();
+  atualizarRankingMotoristas();
+  atualizarRankingManutencao();
 }
 
 /* ================= VEICULOS ================= */
@@ -429,4 +432,114 @@ function atualizarBIExecutivo() {
           currency: "BRL"
         })
       : "R$ 0,00";
+}
+function atualizarRankingVeiculos() {
+
+  if (!window.rankingVeiculos) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const placa = a.veiculo;
+    const total = Number(a.total) || 0;
+    const km = Number(a.kmRodado) || 0;
+
+    if (!mapa[placa]) {
+      mapa[placa] = { total: 0, km: 0 };
+    }
+
+    mapa[placa].total += total;
+    mapa[placa].km += km;
+
+  });
+
+  const lista = Object.entries(mapa)
+    .map(([veiculo, dados]) => ({
+      veiculo,
+      total: dados.total,
+      km: dados.km,
+      custoKm: dados.km > 0 ? dados.total / dados.km : 0
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  rankingVeiculos.innerHTML = lista.map(v => `
+    <tr>
+      <td>${v.veiculo}</td>
+      <td>R$ ${v.total.toFixed(2)}</td>
+      <td>${v.km.toFixed(0)}</td>
+      <td>R$ ${v.custoKm.toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+}
+function atualizarRankingMotoristas() {
+
+  if (!window.rankingMotoristas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const nome = a.motorista;
+    const total = Number(a.total) || 0;
+    const km = Number(a.kmRodado) || 0;
+
+    if (!mapa[nome]) {
+      mapa[nome] = { total: 0, km: 0 };
+    }
+
+    mapa[nome].total += total;
+    mapa[nome].km += km;
+
+  });
+
+  const lista = Object.entries(mapa)
+    .map(([motorista, dados]) => ({
+      motorista,
+      total: dados.total,
+      km: dados.km,
+      custoKm: dados.km > 0 ? dados.total / dados.km : 0
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  rankingMotoristas.innerHTML = lista.map(m => `
+    <tr>
+      <td>${m.motorista}</td>
+      <td>R$ ${m.total.toFixed(2)}</td>
+      <td>${m.km.toFixed(0)}</td>
+      <td>R$ ${m.custoKm.toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+}
+function atualizarRankingManutencao() {
+
+  if (!window.rankingManutencao) return;
+
+  const mapa = {};
+
+  manutencoes.forEach(m => {
+
+    const placa = m.veiculo;
+    const valor = Number(m.valor) || 0;
+
+    if (!mapa[placa]) {
+      mapa[placa] = 0;
+    }
+
+    mapa[placa] += valor;
+
+  });
+
+  const lista = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1]);
+
+  rankingManutencao.innerHTML = lista.map(([veiculo, total]) => `
+    <tr>
+      <td>${veiculo}</td>
+      <td>R$ ${total.toFixed(2)}</td>
+    </tr>
+  `).join("");
+
 }
