@@ -156,7 +156,7 @@ function abrirPagina(id) {
 
 /* ================= SALVAR VEÍCULO ================= */
 
-wwindow.salvarAbastecimento = async function () {
+window.salvarAbastecimento = async function () {
 
   const kmAtual = Number(aKmAtual2.value) || 0;
   const kmAnterior = Number(aKmAnterior.value) || 0;
@@ -339,18 +339,26 @@ function renderAbastecimentos(){
 
   if(!listaAbastecimentos) return;
 
-  listaAbastecimentos.innerHTML = abastecimentos.map(a=>`
-    <tr>
-      <td>${new Date(a.dataISO).toLocaleDateString()}</td>
-      <td>${a.veiculo}</td>
-      <td>${a.motorista}</td>
-      <td>${a.litros}</td>
-      <td>R$ ${a.total.toFixed(2)}</td>
-      <td>${a.kmRodado}</td>
-      <td>R$ ${a.custoKm.toFixed(2)}</td>
-      <td>-</td>
-    </tr>
-  `).join("");
+  listaAbastecimentos.innerHTML = abastecimentos.map(a=>{
+
+    const litros = Number(a.litros || 0);
+    const total = Number(a.total || 0);
+    const kmRodado = Number(a.kmRodado || 0);
+
+    return `
+      <tr>
+        <td>${new Date(a.dataISO).toLocaleDateString()}</td>
+        <td>${a.veiculo || ""}</td>
+        <td>${a.motorista || ""}</td>
+        <td>${litros.toFixed(1)}</td>
+        <td>R$ ${total.toFixed(2)}</td>
+        <td>${kmRodado}</td>
+        <td>${kmRodado > 0 ? (total/kmRodado).toFixed(2) : "0.00"}</td>
+        <td>-</td>
+      </tr>
+    `;
+
+  }).join("");
 
 }
 
@@ -490,4 +498,3 @@ function atualizarBIExecutivo(){
     custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 }
-
