@@ -147,23 +147,63 @@ function abrirPagina(id) {
 
 async function carregarDados() {
 
-  const { data: v } = await db.from("veiculos").select("*");
-  const { data: m } = await db.from("motoristas").select("*");
-  const { data: a } = await db.from("abastecimentos").select("*");
+  try {
 
-  veiculos = v || [];
-  motoristas = m || [];
-  abastecimentos = a || [];
+    // ================= BUSCA SUPABASE =================
 
-  renderVeiculos();
-  renderMotoristas();
-  renderAbastecimentos();
+    const { data: v, error: ev } = await db.from("veiculos").select("*");
+    const { data: m, error: em } = await db.from("motoristas").select("*");
+    const { data: a, error: ea } = await db.from("abastecimentos").select("*");
+    const { data: man, error: eman } = await db.from("manutencoes").select("*");
 
-  atualizarDashboard();
-  atualizarBIExecutivo();
-  atualizarRankingVeiculos();
-  atualizarRankingMotoristas();
-  atualizarRankingManutencao();
+    if (ev || em || ea || eman) {
+      console.error("Erro Supabase:", ev || em || ea || eman);
+      return;
+    }
+
+    // ================= ATUALIZA MEMÓRIA =================
+
+    veiculos = v || [];
+    motoristas = m || [];
+    abastecimentos = a || [];
+    manutencoes = man || [];
+
+    // ================= RENDERS =================
+
+    renderVeiculos();
+    renderMotoristas();
+    renderAbastecimentos();
+    renderManutencoes?.();
+
+    // ================= DASHBOARD =================
+
+    atualizarDashboard();
+
+    // ================= BI EXECUTIVO =================
+
+    atualizarBIExecutivo();
+
+    // ================= GRÁFICOS =================
+
+    graficoVeiculos();
+    graficoMotoristas();
+    graficoTopVeiculos();
+    graficoTopManutencao();
+
+    // ================= RANKINGS =================
+
+    atualizarRankingVeiculos();
+    atualizarRankingMotoristas();
+    atualizarRankingManutencao();
+
+    console.log("Dados carregados com sucesso");
+
+  } catch (err) {
+
+    console.error("Falha geral carregarDados:", err);
+
+  }
+
 }
 
 /* ================= VEICULOS ================= */
@@ -541,5 +581,145 @@ function atualizarRankingManutencao() {
       <td>R$ ${total.toFixed(2)}</td>
     </tr>
   `).join("");
+
+}
+function graficoVeiculos() {
+
+  if (!window.grafVeiculos) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const placa = a.veiculo;
+    const total = Number(a.total) || 0;
+
+    mapa[placa] = (mapa[placa] || 0) + total;
+
+  });
+
+  const labels = Object.keys(mapa);
+  const valores = Object.values(mapa);
+
+  if (grafV) grafV.destroy();
+
+  grafV = new Chart(grafVeiculos, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "R$ Gasto",
+        data: valores
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+
+}
+function graficoMotoristas() {
+
+  if (!window.grafMotoristas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const nome = a.motorista;
+    const total = Number(a.total) || 0;
+
+    mapa[nome] = (mapa[nome] || 0) + total;
+
+  });
+
+  const labels = Object.keys(mapa);
+  const valores = Object.values(mapa);
+
+  if (grafM) grafM.destroy();
+
+  grafM = new Chart(grafMotoristas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "R$ Gasto",
+        data: valores
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+
+}
+function graficoTopVeiculos() {
+
+  if (!window.grafTopVeiculos) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const placa = a.veiculo;
+    const total = Number(a.total) || 0;
+
+    mapa[placa] = (mapa[placa] || 0) + total;
+
+  });
+
+  const ordenado = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const labels = ordenado.map(i => i[0]);
+  const valores = ordenado.map(i => i[1]);
+
+  if (grafTopVeiculos) grafTopVeiculos.destroy();
+
+  grafTopVeiculos = new Chart(grafTopVeiculos, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data: valores
+      }]
+    }
+  });
+
+}
+function graficoTopManutencao() {
+
+  if (!window.grafTopManutencao) return;
+
+  const mapa = {};
+
+  manutencoes.forEach(m => {
+
+    const placa = m.veiculo;
+    const valor = Number(m.valor) || 0;
+
+    mapa[placa] = (mapa[placa] || 0) + valor;
+
+  });
+
+  const ordenado = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const labels = ordenado.map(i => i[0]);
+  const valores = ordenado.map(i => i[1]);
+
+  if (grafTopManutencao) grafTopManutencao.destroy();
+
+  grafTopManutencao = new Chart(grafTopManutencao, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{
+        data: valores
+      }]
+    }
+  });
 
 }
