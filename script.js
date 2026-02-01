@@ -5,12 +5,6 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let grafV = null;
-let grafM = null;
-let grafTopVeiculos = null;
-let grafTopManutencao = null;
-
-
 /* ================= HELPERS ================= */
 
 const $ = id => document.getElementById(id);
@@ -410,6 +404,8 @@ function renderAbastecimentos() {
 
 function atualizarDashboard() {
 
+  if (!window.cVeiculos) return;
+
   cVeiculos.textContent = veiculos.length;
   cMotoristas.textContent = motoristas.length;
   cAbastecimentos.textContent = abastecimentos.length;
@@ -419,6 +415,7 @@ function atualizarDashboard() {
   totalCombustivel.textContent =
     total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
 
 /* ================= BI EXECUTIVO ================= */
 
@@ -457,6 +454,10 @@ function atualizarBIExecutivo() {
         })
       : "R$ 0,00";
 }
+
+
+/* ================= RANKING VEÍCULOS ================= */
+
 function atualizarRankingVeiculos() {
 
   if (!window.rankingVeiculos) return;
@@ -495,8 +496,11 @@ function atualizarRankingVeiculos() {
       <td>R$ ${v.custoKm.toFixed(2)}</td>
     </tr>
   `).join("");
-
 }
+
+
+/* ================= RANKING MOTORISTAS ================= */
+
 function atualizarRankingMotoristas() {
 
   if (!window.rankingMotoristas) return;
@@ -535,8 +539,11 @@ function atualizarRankingMotoristas() {
       <td>R$ ${m.custoKm.toFixed(2)}</td>
     </tr>
   `).join("");
-
 }
+
+
+/* ================= RANKING MANUTENÇÃO ================= */
+
 function atualizarRankingManutencao() {
 
   if (!window.rankingManutencao) return;
@@ -548,11 +555,7 @@ function atualizarRankingManutencao() {
     const placa = m.veiculo;
     const valor = Number(m.valor) || 0;
 
-    if (!mapa[placa]) {
-      mapa[placa] = 0;
-    }
-
-    mapa[placa] += valor;
+    mapa[placa] = (mapa[placa] || 0) + valor;
 
   });
 
@@ -565,43 +568,19 @@ function atualizarRankingManutencao() {
       <td>R$ ${total.toFixed(2)}</td>
     </tr>
   `).join("");
-
 }
-function graficoVeiculos() {
 
-  if (!window.grafVeiculos) return;
 
-  const mapa = {};
+/* ================= GRAFICOS ================= */
 
-  abastecimentos.forEach(a => {
+let grafV = null;
+let grafM = null;
+let grafTopVeiculos = null;
+let grafTopManutencao = null;
 
-    const placa = a.veiculo;
-    const total = Number(a.total) || 0;
 
-    mapa[placa] = (mapa[placa] || 0) + total;
+/* ===== GRAFICO VEÍCULOS ===== */
 
-  });
-
-  const labels = Object.keys(mapa);
-  const valores = Object.values(mapa);
-
-  if (grafV) grafV.destroy();
-
-  grafV = new Chart(grafVeiculos, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "R$ Gasto",
-        data: valores
-      }]
-    },
-    options: {
-      responsive: true
-    }
-  });
-
-}
 function graficoVeiculos() {
 
   const canvas = document.getElementById("grafVeiculos");
@@ -615,94 +594,117 @@ function graficoVeiculos() {
     mapa[placa] = (mapa[placa] || 0) + total;
   });
 
-  const labels = Object.keys(mapa);
-  const valores = Object.values(mapa);
-
   if (grafV) grafV.destroy();
 
   grafV = new Chart(canvas, {
     type: "bar",
     data: {
-      labels,
+      labels: Object.keys(mapa),
       datasets: [{
         label: "Gasto por Veículo (R$)",
-        data: valores
+        data: Object.values(mapa)
       }]
     },
     options: { responsive: true }
   });
 }
 
-function graficoTopVeiculos() {
 
-  if (!window.grafTopVeiculos) return;
+/* ===== GRAFICO MOTORISTAS ===== */
+
+function graficoMotoristas() {
+
+  const canvas = document.getElementById("grafMotoristas");
+  if (!canvas) return;
 
   const mapa = {};
 
   abastecimentos.forEach(a => {
-
-    const placa = a.veiculo;
+    const nome = a.motorista;
     const total = Number(a.total) || 0;
-
-    mapa[placa] = (mapa[placa] || 0) + total;
-
+    mapa[nome] = (mapa[nome] || 0) + total;
   });
 
-  const ordenado = Object.entries(mapa)
+  if (grafM) grafM.destroy();
+
+  grafM = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: Object.keys(mapa),
+      datasets: [{
+        label: "Gasto por Motorista (R$)",
+        data: Object.values(mapa)
+      }]
+    },
+    options: { responsive: true }
+  });
+}
+
+
+/* ===== TOP VEÍCULOS ===== */
+
+function graficoTopVeiculos() {
+
+  const canvas = document.getElementById("grafTopVeiculos");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    const placa = a.veiculo;
+    const total = Number(a.total) || 0;
+    mapa[placa] = (mapa[placa] || 0) + total;
+  });
+
+  const top = Object.entries(mapa)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  const labels = ordenado.map(i => i[0]);
-  const valores = ordenado.map(i => i[1]);
-
   if (grafTopVeiculos) grafTopVeiculos.destroy();
 
-  grafTopVeiculos = new Chart(grafTopVeiculos, {
+  grafTopVeiculos = new Chart(canvas, {
     type: "pie",
     data: {
-      labels,
-      datasets: [{
-        data: valores
-      }]
+      labels: top.map(i => i[0]),
+      datasets: [{ data: top.map(i => i[1]) }]
     }
   });
-
 }
+
+
+/* ===== TOP MANUTENÇÃO ===== */
+
 function graficoTopManutencao() {
 
-  if (!window.grafTopManutencao) return;
+  const canvas = document.getElementById("grafTopManutencao");
+  if (!canvas) return;
 
   const mapa = {};
 
   manutencoes.forEach(m => {
-
     const placa = m.veiculo;
     const valor = Number(m.valor) || 0;
-
     mapa[placa] = (mapa[placa] || 0) + valor;
-
   });
 
-  const ordenado = Object.entries(mapa)
+  const top = Object.entries(mapa)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  const labels = ordenado.map(i => i[0]);
-  const valores = ordenado.map(i => i[1]);
-
   if (grafTopManutencao) grafTopManutencao.destroy();
 
-  grafTopManutencao = new Chart(grafTopManutencao, {
+  grafTopManutencao = new Chart(canvas, {
     type: "doughnut",
     data: {
-      labels,
-      datasets: [{
-        data: valores
-      }]
+      labels: top.map(i => i[0]),
+      datasets: [{ data: top.map(i => i[1]) }]
     }
   });
-
 }
+
+
+/* ================= RENDER MANUTENÇÕES ================= */
+
 function renderManutencoes() {
 
   if (!$("listaManutencoes")) return;
@@ -716,5 +718,40 @@ function renderManutencoes() {
       <td>R$ ${Number(m.valor || 0).toFixed(2)}</td>
     </tr>
   `).join("");
+}
+function graficoMotoristas() {
+
+  const canvas = document.getElementById("grafMotoristas");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const nome = a.motorista;
+    const total = Number(a.total) || 0;
+
+    mapa[nome] = (mapa[nome] || 0) + total;
+
+  });
+
+  const labels = Object.keys(mapa);
+  const valores = Object.values(mapa);
+
+  if (window.grafM) grafM.destroy();
+
+  grafM = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Gasto por Motorista (R$)",
+        data: valores
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
 
 }
