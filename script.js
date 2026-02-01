@@ -216,7 +216,8 @@ window.salvarAbastecimento = async function () {
     litros: Number(aQuantidade.value),
     total: Number(aTotal.value),
     kmAtual: Number(aKmAtual.value),
-    dataISO: new Date().toISOString()
+    data: aData.value
+
   };
 
   const { error } = await db.from("abastecimentos").insert([registro]);
