@@ -1,7 +1,7 @@
 /* ================= SUPABASE ================= */
 
 const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
-const SUPABASE_KEY = "SUA_ANON_KEY_PUBLICA_AQUI";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Z2JvaGJ5cWZjaHVyaGxzenR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3ODg0MDMsImV4cCI6MjA4NTM2NDQwM30.gKs1x9Y3s86D70uW207jilOYD4MZmk0rpUw6i1QRbaY";
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
