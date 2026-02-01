@@ -403,26 +403,26 @@ function atualizarBIExecutivo() {
 
   abastecimentos.forEach(a => {
 
-    const gasto = Number(a.total) || 0;
-    const lit = Number(a.litros) || 0;
-    const rodado = Number(a.kmRodado) || 0;
+    const gasto = Number(a.total);
+    const lit = Number(a.litros);
+    const rodado = Number(a.kmRodado);
 
-    total += gasto;
-    litros += lit;
-    km += rodado;
+    if (!isNaN(gasto)) total += gasto;
+    if (!isNaN(lit)) litros += lit;
+
+    if (!isNaN(rodado) && rodado > 0) {
+      km += rodado;
+    }
 
   });
 
-  document.getElementById("biTotal").textContent =
+  biTotal.textContent =
     total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  document.getElementById("biLitros").textContent =
-    litros.toFixed(1);
+  biLitros.textContent = litros.toFixed(1);
+  biKm.textContent = km.toFixed(0);
 
-  document.getElementById("biKm").textContent =
-    km.toFixed(0);
-
-  document.getElementById("biCustoKm").textContent =
+  biCustoKm.textContent =
     km > 0
       ? (total / km).toLocaleString("pt-BR", {
           style: "currency",
