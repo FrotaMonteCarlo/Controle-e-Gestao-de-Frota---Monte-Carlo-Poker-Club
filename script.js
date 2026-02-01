@@ -143,29 +143,37 @@ function abrirPagina(id) {
 
 /* ================= SALVAR VEÍCULO ================= */
 
-window.salvarVeiculo = async function () {
+window.salvarAbastecimento = async function () {
 
   const registro = {
-    placa: vPlaca.value.trim(),
-    marca: vMarca.value.trim(),
-    modelo: vModelo.value.trim(),
-    ano: Number(vAno.value),
-    categoria: vCategoria.value,
-    cor: vCor.value,
-    renavan: vRenavan.value,
-    kmAtual: Number(vKmAtual.value),
-    kmOleo: Number(vKmOleo.value)
+
+    veiculo: aVeiculo.value,
+    motorista: aMotorista.value,
+
+    preco: Number(aPreco.value),
+    litros: Number(aQuantidade.value),
+    total: Number(aTotal.value),
+
+    kmAnterior: Number(aKmAnterior.value),
+    kmAtual: Number(aKmAtual.value),
+    kmRodado: Number(aKmRodado.value),
+    custoKm: Number(aCustoKm.value),
+
+    data: aData.value
   };
 
-  const { error } = await db.from("veiculos").insert([registro]);
+  const { error } = await db.from("abastecimentos").insert([registro]);
 
   if (error) {
+
     console.error(error);
-    alert("Erro ao salvar veículo");
+    alert("Erro ao salvar abastecimento");
     return;
+
   }
 
-  limparVeiculo();
+  alert("Abastecimento salvo com sucesso ✅");
+
   carregarDados();
 
 };
@@ -359,3 +367,74 @@ function limparVeiculo() {
   vKmOleo.value = "";
 
 }
+/* ================= ABASTECIMENTO AUTO CALC ================= */
+
+function calcularTotal() {
+
+  const preco = Number(aPreco.value) || 0;
+  const litros = Number(aQuantidade.value) || 0;
+
+  const total = preco * litros;
+
+  aTotal.value = total.toFixed(2);
+
+}
+
+function calcularKm() {
+
+  const atual = Number(aKmAtual.value) || 0;
+  const anterior = Number(aKmAnterior.value) || 0;
+
+  const rodado = atual - anterior;
+
+  if (rodado > 0) {
+
+    aKmRodado.value = rodado;
+
+    const custoKm = Number(aTotal.value) / rodado;
+
+    aCustoKm.value = custoKm.toFixed(2);
+
+  }
+
+}
+
+
+/* ================= EVENTOS ================= */
+
+aPreco?.addEventListener("input", calcularTotal);
+aQuantidade?.addEventListener("input", calcularTotal);
+aKmAtual?.addEventListener("input", calcularKm);
+aVeiculo?.addEventListener("change", async () => {
+
+  const placa = aVeiculo.value;
+
+  if (!placa) return;
+
+  // tenta pegar ultimo abastecimento
+  const { data } = await db
+    .from("abastecimentos")
+    .select("kmAtual")
+    .eq("veiculo", placa)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (data && data.length > 0) {
+
+    aKmAnterior.value = data[0].kmAtual;
+    return;
+
+  }
+
+  // se não tiver abastecimento pega km do cadastro do veículo
+  const { data: v } = await db
+    .from("veiculos")
+    .select("kmAtual")
+    .eq("placa", placa)
+    .single();
+
+  if (v) {
+    aKmAnterior.value = v.kmAtual;
+  }
+
+});
