@@ -84,15 +84,17 @@ function verificarSessao() {
     nomeUsuario.textContent = usuarioLogado.nome;
     perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
 
+    // garante DOM visível antes de carregar dados
     setTimeout(() => {
       carregarDados();
       abrirPagina("dashboard");
-    }, 150);
+    }, 100);
 
   } else {
 
     loginScreen.style.display = "flex";
     appSistema.style.display = "none";
+
   }
 }
 
@@ -105,7 +107,8 @@ let manVeiculo, manCategoria, manDescricao, manValor, manData;
 
 function mapearInputs() {
 
-  // VEICULOS
+  // ================= VEICULOS =================
+
   vPlaca = $("vPlaca");
   vMarca = $("vMarca");
   vModelo = $("vModelo");
@@ -116,13 +119,15 @@ function mapearInputs() {
   vKmAtual = $("vKmAtual");
   vKmOleo = $("vKmOleo");
 
-  // MOTORISTAS
+  // ================= MOTORISTAS =================
+
   mNome = $("mNome");
   mCpf = $("mCpf");
   mCnh = $("mCnh");
   mTelefone = $("mTelefone");
 
-  // ABASTECIMENTO
+  // ================= ABASTECIMENTO =================
+
   aVeiculo = $("aVeiculo");
   aMotorista = $("aMotorista");
   aPreco = $("aPreco");
@@ -133,6 +138,140 @@ function mapearInputs() {
   aKmRodado = $("aKmRodado");
   aCustoKm = $("aCustoKm");
   aData = $("aData");
+
+  // ================= MANUTENÇÃO =================
+
+  manVeiculo = $("manVeiculo");
+  manCategoria = $("manCategoria");
+  manDescricao = $("manDescricao");
+  manValor = $("manValor");
+  manData = $("manData");
+
+  // ================= EVENTOS AUTOMÁTICOS =================
+
+  if (aPreco) aPreco.addEventListener("input", calcularTotal);
+  if (aQuantidade) aQuantidade.addEventListener("input", calcularTotal);
+  if (aKmAtual) aKmAtual.addEventListener("input", calcularKm);
+  if (aVeiculo) aVeiculo.addEventListener("change", buscarKmAnterior);
+
+  console.log("MAPEAMENTO DE INPUTS CONCLUÍDO COM SUCESSO");
+
+
+
+/* ================= MANUTENÇÃO ================= */
+
+window.salvarManutencao = async function () {
+
+  const registro = {
+    veiculo: manVeiculo.value,
+    categoria: manCategoria.value,
+    descricao: manDescricao.value,
+    valor: Number(manValor.value),
+    data: manData.value
+  };
+
+  // validação mínima
+  if (!registro.veiculo || !registro.categoria || !registro.valor || !registro.data) {
+    alert("Preencha todos os campos obrigatórios da manutenção");
+    return;
+  }
+
+  let res;
+
+  // ===== EDITAR =====
+  if (window.manutencaoEditando) {
+
+    res = await db
+      .from("manutencoes")
+      .update(registro)
+      .eq("id", window.manutencaoEditando);
+
+    window.manutencaoEditando = null;
+
+  } else {
+
+    // ===== INSERIR =====
+    res = await db
+      .from("manutencoes")
+      .insert([registro]);
+  }
+
+  if (res.error) {
+    console.error(res.error);
+    alert("Erro ao salvar manutenção");
+    return;
+  }
+
+  limparManutencao();
+  carregarDados();
+
+  alert("Manutenção salva com sucesso ✅");
+};
+
+
+
+function editarManutencao(id) {
+
+  const m = manutencoes.find(item => item.id === id);
+
+  if (!m) {
+    alert("Registro de manutenção não encontrado");
+    return;
+  }
+
+  // popula formulário
+  manVeiculo.value = m.veiculo;
+  manCategoria.value = m.categoria;
+  manDescricao.value = m.descricao;
+  manValor.value = m.valor;
+  manData.value = m.data;
+
+  window.manutencaoEditando = id;
+
+  abrirPagina("manutencao");
+}
+
+
+
+async function excluirManutencao(id) {
+
+  if (!confirm("Deseja realmente excluir esta manutenção?")) return;
+
+  const { error } = await db
+    .from("manutencoes")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao excluir manutenção");
+    return;
+  }
+
+  carregarDados();
+}
+
+
+
+function limparManutencao() {
+
+  manVeiculo.value = "";
+  manCategoria.value = "";
+  manDescricao.value = "";
+  manValor.value = "";
+  manData.value = "";
+
+  window.manutencaoEditando = null;
+}
+
+
+
+/* ===== EXPORTAÇÃO GLOBAL (HTML ONCLICK) ===== */
+
+window.salvarManutencao = salvarManutencao;
+window.editarManutencao = editarManutencao;
+window.excluirManutencao = excluirManutencao;
+
 
   // MANUTENÇÃO
   manVeiculo = $("manVeiculo");
@@ -210,6 +349,19 @@ const { data: man } = await db
 
     atualizarDashboard();
     if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
+
+    // ===== BI =====
+     atualizarRankingVeiculos();
+     atualizarRankingMotoristas();
+     atualizarRankingManutencao();
+
+     // ===== GRÁFICOS =====
+     setTimeout(() => {
+     graficoVeiculos();
+     graficoMotoristas();
+    graficoTopVeiculos();
+    graficoTopManutencao();
+    }, 150);
 
 
     console.log("TELA ATUALIZADA COM SUCESSO");
@@ -296,6 +448,222 @@ function atualizarBIExecutivo() {
       : "R$ 0,00";
 }
 
+function atualizarRankingVeiculos() {
+
+  if (!window.rankingVeiculos) {
+    window.rankingVeiculos = $("rankingVeiculos");
+  }
+
+  if (!rankingVeiculos) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const placa = a.veiculo;
+    const total = Number(a.total || 0);
+    const km = Number(a.kmRodado || 0);
+
+    if (!mapa[placa]) mapa[placa] = { total: 0, km: 0 };
+
+    mapa[placa].total += total;
+    mapa[placa].km += km;
+  });
+
+  const lista = Object.entries(mapa)
+    .sort((a, b) => b[1].total - a[1].total);
+
+  rankingVeiculos.innerHTML = lista.map(([placa, d]) => `
+    <tr>
+      <td>${placa}</td>
+      <td>R$ ${d.total.toFixed(2)}</td>
+      <td>${d.km.toFixed(0)}</td>
+    </tr>
+  `).join("");
+}
+
+function atualizarRankingMotoristas() {
+
+  if (!window.rankingMotoristas) {
+    window.rankingMotoristas = $("rankingMotoristas");
+  }
+
+  if (!rankingMotoristas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+
+    const nome = a.motorista;
+    const total = Number(a.total || 0);
+
+    mapa[nome] = (mapa[nome] || 0) + total;
+  });
+
+  const lista = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1]);
+
+  rankingMotoristas.innerHTML = lista.map(([nome, total]) => `
+    <tr>
+      <td>${nome}</td>
+      <td>R$ ${total.toFixed(2)}</td>
+    </tr>
+  `).join("");
+}
+
+function atualizarRankingManutencao() {
+
+  if (!window.rankingManutencao) {
+    window.rankingManutencao = $("rankingManutencao");
+  }
+
+  if (!rankingManutencao) return;
+
+  const mapa = {};
+
+  manutencoes.forEach(m => {
+
+    const placa = m.veiculo;
+    const valor = Number(m.valor || 0);
+
+    mapa[placa] = (mapa[placa] || 0) + valor;
+  });
+
+  const lista = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1]);
+
+  rankingManutencao.innerHTML = lista.map(([placa, total]) => `
+    <tr>
+      <td>${placa}</td>
+      <td>R$ ${total.toFixed(2)}</td>
+    </tr>
+  `).join("");
+}
+
+function graficoVeiculos() {
+
+  const canvas = document.getElementById("grafVeiculos");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    mapa[a.veiculo] = (mapa[a.veiculo] || 0) + Number(a.total || 0);
+  });
+
+  // destrói gráfico antigo corretamente
+  if (grafVeiculos instanceof Chart) {
+    grafVeiculos.destroy();
+  }
+
+  grafVeiculos = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: Object.keys(mapa),
+      datasets: [{
+        label: "Gasto por Veículo",
+        data: Object.values(mapa)
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+}
+
+
+function graficoMotoristas() {
+
+  const canvas = document.getElementById("grafMotoristas");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    mapa[a.motorista] = (mapa[a.motorista] || 0) + Number(a.total || 0);
+  });
+
+  if (grafMotoristas instanceof Chart) {
+    grafMotoristas.destroy();
+  }
+
+  grafMotoristas = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: Object.keys(mapa),
+      datasets: [{
+        label: "Gasto por Motorista",
+        data: Object.values(mapa)
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+}
+
+function graficoTopVeiculos() {
+
+  const canvas = document.getElementById("grafTopVeiculos");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    mapa[a.veiculo] = (mapa[a.veiculo] || 0) + Number(a.total || 0);
+  });
+
+  const top = Object.entries(mapa)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+
+  if (grafTopVeiculos instanceof Chart) {
+    grafTopVeiculos.destroy();
+  }
+
+  grafTopVeiculos = new Chart(canvas, {
+    type: "pie",
+    data: {
+      labels: top.map(i => i[0]),
+      datasets: [{
+        data: top.map(i => i[1])
+      }]
+    }
+  });
+}
+
+
+function graficoTopManutencao() {
+
+  const canvas = document.getElementById("grafTopManutencao");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  manutencoes.forEach(m => {
+    mapa[m.veiculo] = (mapa[m.veiculo] || 0) + Number(m.valor || 0);
+  });
+
+  const top = Object.entries(mapa)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5);
+
+  if (grafTopManutencao instanceof Chart) {
+    grafTopManutencao.destroy();
+  }
+
+  grafTopManutencao = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: top.map(i => i[0]),
+      datasets: [{
+        data: top.map(i => i[1])
+      }]
+    }
+  });
+}
+
+
 window.salvarMotorista = async function () {
 
   const registro = {
@@ -357,18 +725,21 @@ async function excluirMotorista(id) {
 
   if (!confirm("Deseja realmente excluir este motorista?")) return;
 
-  const { error } = await db
+  console.log("Tentando excluir ID:", id);
+
+  const { data, error } = await db
     .from("motoristas")
     .delete()
-    .eq("id", id);
+    .match({ id: id })   // match funciona melhor com UUID
+    .select();           // força retorno real
 
   if (error) {
-    console.error(error);
+    console.error("ERRO DELETE:", error);
     alert("Erro ao excluir motorista");
     return;
   }
 
-  console.log("Motorista removido:", id);
+  console.log("REMOVIDO DO BANCO:", data);
 
   carregarDados();
 }
@@ -382,11 +753,209 @@ function limparMotorista() {
   mTelefone.value = "";
 }
 
+/* ================= ABASTECIMENTO ================= */
+
+window.salvarAbastecimento = async function () {
+
+  const preco = Number(aPreco.value);
+  const litros = Number(aQuantidade.value);
+
+  const kmAnterior = Number(aKmAnterior.value);
+  const kmAtual = Number(aKmAtual.value);
+
+  if (!aVeiculo.value || !aMotorista.value || !aData.value) {
+    alert("Preencha todos os campos do abastecimento");
+    return;
+  }
+
+  const kmRodado = kmAtual - kmAnterior;
+
+  if (kmRodado <= 0) {
+    alert("KM Atual deve ser maior que o KM Anterior");
+    return;
+  }
+
+  const total = preco * litros;
+  const custoKm = total / kmRodado;
+
+  const registro = {
+    veiculo: aVeiculo.value,
+    motorista: aMotorista.value,
+    preco,
+    litros,
+    total,
+    kmAnterior,
+    kmAtual,
+    kmRodado,
+    custoKm,
+    data: aData.value
+  };
+
+  let error;
+
+  // ===== EDITAR OU INSERIR =====
+
+  if (window.abastecimentoEditando) {
+
+    ({ error } = await db
+      .from("abastecimentos")
+      .update(registro)
+      .eq("id", window.abastecimentoEditando));
+
+    window.abastecimentoEditando = null;
+
+  } else {
+
+    ({ error } = await db
+      .from("abastecimentos")
+      .insert([registro]));
+  }
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar abastecimento");
+    return;
+  }
+
+  limparAbastecimento();
+  carregarDados();
+
+  alert("Abastecimento salvo com sucesso ✅");
+};
+
+
+/* ================= VEÍCULOS ================= */
+
+window.salvarVeiculo = async function () {
+
+  const registro = {
+    placa: vPlaca.value,
+    marca: vMarca.value,
+    modelo: vModelo.value,
+    ano: Number(vAno.value),
+    categoria: vCategoria.value,
+    cor: vCor.value,
+    renavan: vRenavan.value,
+    kmAtual: Number(vKmAtual.value),
+    kmOleo: Number(vKmOleo.value)
+  };
+
+  // validação mínima
+  if (!registro.placa || !registro.marca || !registro.modelo) {
+    alert("Preencha Placa, Marca e Modelo");
+    return;
+  }
+
+  let res;
+
+  // ===== EDITAR =====
+  if (window.veiculoEditando) {
+
+    res = await db
+      .from("veiculos")
+      .update(registro)
+      .eq("id", window.veiculoEditando);
+
+    window.veiculoEditando = null;
+
+  } else {
+
+    // ===== INSERIR =====
+    res = await db
+      .from("veiculos")
+      .insert([registro]);
+  }
+
+  if (res.error) {
+    console.error(res.error);
+    alert("Erro ao salvar veículo");
+    return;
+  }
+
+  limparVeiculo();
+  carregarDados();
+};
+
+
+
+function editarVeiculo(id) {
+
+  const v = veiculos.find(item => item.id === id);
+
+  if (!v) {
+    alert("Veículo não encontrado");
+    return;
+  }
+
+  // popula formulário
+  vPlaca.value = v.placa;
+  vMarca.value = v.marca;
+  vModelo.value = v.modelo;
+  vAno.value = v.ano;
+  vCategoria.value = v.categoria;
+  vCor.value = v.cor;
+  vRenavan.value = v.renavan;
+  vKmAtual.value = v.kmAtual;
+  vKmOleo.value = v.kmOleo;
+
+  window.veiculoEditando = id;
+
+  abrirPagina("veiculos");
+}
+
+
+
+async function excluirVeiculo(id) {
+
+  if (!confirm("Deseja realmente excluir este veículo?")) return;
+
+  const { error } = await db
+    .from("veiculos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao excluir veículo");
+    return;
+  }
+
+  carregarDados();
+}
+
+
+
+function limparVeiculo() {
+
+  vPlaca.value = "";
+  vMarca.value = "";
+  vModelo.value = "";
+  vAno.value = "";
+  vCategoria.value = "";
+  vCor.value = "";
+  vRenavan.value = "";
+  vKmAtual.value = "";
+  vKmOleo.value = "";
+
+  window.veiculoEditando = null;
+}
+
+
+
+/* ===== EXPORTAÇÃO GLOBAL (HTML ONCLICK) ===== */
+
+window.editarVeiculo = editarVeiculo;
+window.excluirVeiculo = excluirVeiculo;
+window.salvarVeiculo = salvarVeiculo;
+
+
 /* ================= RENDERS ================= */
 
 function renderVeiculos() {
 
   if (!listaVeiculos) return;
+
+  // ===== TABELA VEÍCULOS =====
 
   listaVeiculos.innerHTML = veiculos.map(v => `
     <tr>
@@ -399,26 +968,51 @@ function renderVeiculos() {
       <td>${v.renavan}</td>
       <td>${v.kmAtual}</td>
       <td>${v.kmOleo}</td>
+
+      <td>
+        <button onclick="editarVeiculo('${v.id}')">✏️</button>
+        <button onclick="excluirVeiculo('${v.id}')">🗑️</button>
+      </td>
     </tr>
   `).join("");
 
+
+
+ // ===== SELECT ABASTECIMENTO =====
+
   if (aVeiculo) {
+
     aVeiculo.innerHTML =
-      `<option value="">Selecione</option>` +
-      veiculos.map(v => `<option>${v.placa}</option>`).join("");
+      `<option value="">Selecione Veículo</option>` +
+      veiculos.map(v =>
+        `<option value="${v.placa}">${v.placa}</option>`
+      ).join("");
+
   }
 
+  // ===== SELECT MANUTENÇÃO =====
+
   if (manVeiculo) {
+
     manVeiculo.innerHTML =
-      `<option value="">Selecione</option>` +
-      veiculos.map(v => `<option>${v.placa}</option>`).join("");
+      `<option value="">Selecione Veículo</option>` +
+      veiculos.map(v =>
+        `<option value="${v.placa}">${v.placa}</option>`
+      ).join("");
+
   }
+
 }
+
 
 function renderMotoristas() {
 
-  if (!listaMotoristas) return;
+  if (!listaMotoristas || !aMotorista) {
+    console.warn("Lista ou select de motoristas não encontrado");
+    return;
+  }
 
+  // ===== TABELA / EXTRATO =====
   listaMotoristas.innerHTML = motoristas.map(m => `
     <tr>
       <td>${m.nome}</td>
@@ -427,21 +1021,20 @@ function renderMotoristas() {
       <td>${m.telefone}</td>
 
       <td>
-        <button class="btn-edit" data-id="${m.id}">✏</button>
-        <button class="btn-delete" data-id="${m.id}">🗑</button>
+        <button onclick="editarMotorista('${m.id}')">✏️</button>
+        <button onclick="excluirMotorista('${m.id}')">🗑️</button>
       </td>
     </tr>
   `).join("");
 
-  // ativa eventos após render
-  document.querySelectorAll(".btn-edit").forEach(btn => {
-    btn.onclick = () => editarMotorista(btn.dataset.id);
-  });
+  // ===== SELECT ABASTECIMENTO =====
+  aMotorista.innerHTML =
+    `<option value="">Selecione Motorista</option>` +
+    motoristas.map(m =>
+      `<option value="${m.nome}">${m.nome}</option>`
+    ).join("");
 
-  document.querySelectorAll(".btn-delete").forEach(btn => {
-    btn.onclick = () => excluirMotorista(btn.dataset.id);
-  });
-
+  console.log("SELECT MOTORISTAS ATUALIZADO:", motoristas.length);
 }
 
 
@@ -458,10 +1051,16 @@ function renderAbastecimentos() {
       <td>${a.litros}</td>
       <td>R$ ${Number(a.total).toFixed(2)}</td>
       <td>${a.kmRodado}</td>
-      <td>${Number(a.custoKm).toFixed(2)}</td>
+      <td>R$ ${Number(a.custoKm).toFixed(2)}</td>
+
+      <td>
+        <button onclick="editarAbastecimento('${a.id}')">✏️</button>
+        <button onclick="excluirAbastecimento('${a.id}')">🗑️</button>
+      </td>
     </tr>
   `).join("");
 }
+
 
 function renderManutencoes() {
 
@@ -474,9 +1073,15 @@ function renderManutencoes() {
       <td>${m.categoria}</td>
       <td>${m.descricao || ""}</td>
       <td>R$ ${Number(m.valor).toFixed(2)}</td>
+
+      <td>
+        <button onclick="editarManutencao('${m.id}')">✏️</button>
+        <button onclick="excluirManutencao('${m.id}')">🗑️</button>
+      </td>
     </tr>
   `).join("");
 }
+
 
 /* ================= CALCULOS ================= */
 
@@ -536,3 +1141,56 @@ function buscarKmAnterior() {
       aKmAnterior.value = res?.data?.kmAtual || 0;
     });
 }
+async function excluirAbastecimento(id) {
+
+  if (!confirm("Excluir este abastecimento?")) return;
+
+  const { error } = await db
+    .from("abastecimentos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Erro ao excluir abastecimento");
+    console.error(error);
+    return;
+  }
+
+  carregarDados();
+}
+function editarAbastecimento(id) {
+
+  const a = abastecimentos.find(i => i.id === id);
+  if (!a) return;
+
+  aVeiculo.value = a.veiculo;
+  aMotorista.value = a.motorista;
+  aPreco.value = a.preco;
+  aQuantidade.value = a.litros;
+  aTotal.value = a.total;
+  aKmAnterior.value = a.kmAnterior;
+  aKmAtual.value = a.kmAtual;
+  aKmRodado.value = a.kmRodado;
+  aCustoKm.value = a.custoKm;
+  aData.value = a.data;
+
+  window.abastecimentoEditando = id;
+}
+/* ================= EXPORTA FUNÇÕES PARA HTML ================= */
+
+// VEÍCULOS
+window.editarVeiculo = editarVeiculo;
+window.excluirVeiculo = excluirVeiculo;
+
+// MOTORISTAS
+window.editarMotorista = editarMotorista;
+window.excluirMotorista = excluirMotorista;
+
+// ABASTECIMENTO
+window.editarAbastecimento = editarAbastecimento;
+window.excluirAbastecimento = excluirAbastecimento;
+
+// MANUTENÇÃO
+window.editarManutencao = editarManutencao;
+window.excluirManutencao = excluirManutencao;
+
