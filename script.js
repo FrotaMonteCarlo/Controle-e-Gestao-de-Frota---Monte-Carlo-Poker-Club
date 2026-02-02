@@ -181,10 +181,22 @@ async function carregarDados() {
 
   try {
 
-    const { data: v } = await db.from("veiculos").select("*");
-    const { data: m } = await db.from("motoristas").select("*");
-    const { data: a } = await db.from("abastecimentos").select("*");
-    const { data: man } = await db.from("manutencoes").select("*");
+    const { data: m } = await db
+  .from("motoristas")
+  .select("id, nome, cpf, cnh, telefone");
+
+const { data: v } = await db
+  .from("veiculos")
+  .select("*");
+
+const { data: a } = await db
+  .from("abastecimentos")
+  .select("*");
+
+const { data: man } = await db
+  .from("manutencoes")
+  .select("*");
+
 
     veiculos = v || [];
     motoristas = m || [];
@@ -293,25 +305,26 @@ window.salvarMotorista = async function () {
     telefone: mTelefone.value
   };
 
-  let error;
+  let res;
 
   if (window.motoristaEditando) {
 
-    ({ error } = await db
+    res = await db
       .from("motoristas")
       .update(registro)
-      .eq("id", window.motoristaEditando));
+      .eq("id", window.motoristaEditando);
 
     window.motoristaEditando = null;
 
   } else {
 
-    ({ error } = await db
+    res = await db
       .from("motoristas")
-      .insert([registro]));
+      .insert([registro]);
   }
 
-  if (error) {
+  if (res.error) {
+    console.error(res.error);
     alert("Erro ao salvar motorista");
     return;
   }
@@ -319,24 +332,30 @@ window.salvarMotorista = async function () {
   limparMotorista();
   carregarDados();
 };
+
+
 function editarMotorista(id) {
 
-  const m = motoristas.find(m => m.id === id);
-  if (!m) return;
+  const m = motoristas.find(item => item.id === id);
+
+  if (!m) {
+    alert("Registro não encontrado");
+    return;
+  }
 
   mNome.value = m.nome;
   mCpf.value = m.cpf;
   mCnh.value = m.cnh;
   mTelefone.value = m.telefone;
 
-  // ativa modo edição
   window.motoristaEditando = id;
 
   abrirPagina("motoristas");
 }
+
 async function excluirMotorista(id) {
 
-  if (!confirm("Deseja excluir este motorista?")) return;
+  if (!confirm("Deseja realmente excluir este motorista?")) return;
 
   const { error } = await db
     .from("motoristas")
@@ -344,13 +363,17 @@ async function excluirMotorista(id) {
     .eq("id", id);
 
   if (error) {
-    alert("Erro ao excluir motorista");
     console.error(error);
+    alert("Erro ao excluir motorista");
     return;
   }
 
+  console.log("Motorista removido:", id);
+
   carregarDados();
 }
+
+
 function limparMotorista() {
 
   mNome.value = "";
@@ -394,7 +417,7 @@ function renderVeiculos() {
 
 function renderMotoristas() {
 
-  if (!window.listaMotoristas) return;
+  if (!listaMotoristas) return;
 
   listaMotoristas.innerHTML = motoristas.map(m => `
     <tr>
@@ -404,12 +427,23 @@ function renderMotoristas() {
       <td>${m.telefone}</td>
 
       <td>
-        <button onclick="editarMotorista('${m.id}')" class="btn-edit">✏</button>
-        <button onclick="excluirMotorista('${m.id}')" class="btn-delete">🗑</button>
+        <button class="btn-edit" data-id="${m.id}">✏</button>
+        <button class="btn-delete" data-id="${m.id}">🗑</button>
       </td>
     </tr>
   `).join("");
+
+  // ativa eventos após render
+  document.querySelectorAll(".btn-edit").forEach(btn => {
+    btn.onclick = () => editarMotorista(btn.dataset.id);
+  });
+
+  document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.onclick = () => excluirMotorista(btn.dataset.id);
+  });
+
 }
+
 
 
 function renderAbastecimentos() {
