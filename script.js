@@ -9,6 +9,36 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
 
+/* ================= DATA ================= */
+
+let veiculos = [];
+let motoristas = [];
+let abastecimentos = [];
+let manutencoes = [];
+
+let listaVeiculos;
+let listaMotoristas;
+let listaAbastecimentos;
+let listaManutencoes;
+
+let cVeiculos, cMotoristas, cAbastecimentos, totalCombustivel;
+
+/* ================= INIT ================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  mapearInputs();
+  verificarSessao();
+
+  document.querySelectorAll(".menu-link").forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      abrirPagina(link.dataset.page);
+    });
+  });
+
+});
+
 /* ================= LOGIN ================= */
 
 const usuarios = [
@@ -37,7 +67,6 @@ window.fazerLogin = function () {
 };
 
 window.logoutSistema = function () {
-
   localStorage.removeItem("usuarioLogado");
   usuarioLogado = null;
   verificarSessao();
@@ -55,37 +84,17 @@ function verificarSessao() {
     nomeUsuario.textContent = usuarioLogado.nome;
     perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
 
+    setTimeout(() => {
+      carregarDados();
+      abrirPagina("dashboard");
+    }, 150);
+
   } else {
 
     loginScreen.style.display = "flex";
     appSistema.style.display = "none";
   }
 }
-
-/* ================= DATA ================= */
-
-let veiculos = [];
-let motoristas = [];
-let abastecimentos = [];
-let manutencoes = [];
-
-/* ================= INIT ================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  mapearInputs();
-  verificarSessao();
-  carregarDados();
-  abrirPagina("dashboard");
-
-  document.querySelectorAll(".menu a").forEach(link => {
-    link.onclick = e => {
-      e.preventDefault();
-      abrirPagina(link.dataset.page);
-    };
-  });
-
-});
 
 /* ================= MAP INPUTS ================= */
 
@@ -94,9 +103,9 @@ let mNome, mCpf, mCnh, mTelefone;
 let aVeiculo, aMotorista, aPreco, aQuantidade, aTotal, aKmAtual, aKmAnterior, aKmRodado, aCustoKm, aData;
 let manVeiculo, manCategoria, manDescricao, manValor, manData;
 
-
 function mapearInputs() {
 
+  // VEICULOS
   vPlaca = $("vPlaca");
   vMarca = $("vMarca");
   vModelo = $("vModelo");
@@ -107,11 +116,13 @@ function mapearInputs() {
   vKmAtual = $("vKmAtual");
   vKmOleo = $("vKmOleo");
 
+  // MOTORISTAS
   mNome = $("mNome");
   mCpf = $("mCpf");
   mCnh = $("mCnh");
   mTelefone = $("mTelefone");
 
+  // ABASTECIMENTO
   aVeiculo = $("aVeiculo");
   aMotorista = $("aMotorista");
   aPreco = $("aPreco");
@@ -123,18 +134,31 @@ function mapearInputs() {
   aCustoKm = $("aCustoKm");
   aData = $("aData");
 
+  // MANUTENÇÃO
   manVeiculo = $("manVeiculo");
   manCategoria = $("manCategoria");
   manDescricao = $("manDescricao");
   manValor = $("manValor");
   manData = $("manData");
 
+  // DASHBOARD
+  cVeiculos = $("cVeiculos");
+  cMotoristas = $("cMotoristas");
+  cAbastecimentos = $("cAbastecimentos");
+  totalCombustivel = $("totalCombustivel");
 
+  // EXTRATOS
+  listaVeiculos = $("listaVeiculos");
+  listaMotoristas = $("listaMotoristas");
+  listaAbastecimentos = $("listaAbastecimentos");
+  listaManutencoes = $("listaManutencoes");
+
+  // EVENTOS
   aPreco?.addEventListener("input", calcularTotal);
   aQuantidade?.addEventListener("input", calcularTotal);
   aKmAtual?.addEventListener("input", calcularKm);
-
   aVeiculo?.addEventListener("change", buscarKmAnterior);
+
 }
 
 /* ================= SPA ================= */
@@ -142,9 +166,9 @@ function mapearInputs() {
 function abrirPagina(id) {
 
   document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
-  document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+  document.querySelectorAll(".menu-link").forEach(a => a.classList.remove("active"));
 
-  const page = $(id);
+  const page = document.getElementById(id);
   const link = document.querySelector(`[data-page="${id}"]`);
 
   if (page) page.classList.remove("hidden");
@@ -157,15 +181,15 @@ async function carregarDados() {
 
   try {
 
-    const resVeiculos = await db.from("veiculos").select("*");
-    const resMotoristas = await db.from("motoristas").select("*");
-    const resAbastecimentos = await db.from("abastecimentos").select("*");
-    const resManutencoes = await db.from("manutencoes").select("*");
+    const { data: v } = await db.from("veiculos").select("*");
+    const { data: m } = await db.from("motoristas").select("*");
+    const { data: a } = await db.from("abastecimentos").select("*");
+    const { data: man } = await db.from("manutencoes").select("*");
 
-    veiculos = resVeiculos.data || [];
-    motoristas = resMotoristas.data || [];
-    abastecimentos = resAbastecimentos.data || [];
-    manutencoes = resManutencoes.data || [];
+    veiculos = v || [];
+    motoristas = m || [];
+    abastecimentos = a || [];
+    manutencoes = man || [];
 
     renderVeiculos();
     renderMotoristas();
@@ -173,288 +197,58 @@ async function carregarDados() {
     renderManutencoes();
 
     atualizarDashboard();
-    atualizarBIExecutivo();
+    if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
 
-    atualizarRankingVeiculos();
-    atualizarRankingMotoristas();
-    atualizarRankingManutencao();
 
-    graficoVeiculos();
-    graficoMotoristas();
-    graficoTopVeiculos();
-    graficoTopManutencao();
-
-    console.log("Sistema sincronizado com sucesso");
+    console.log("TELA ATUALIZADA COM SUCESSO");
 
   } catch (erro) {
-
-    console.error("Falha geral carregarDados:", erro);
-
+    console.error("ERRO carregarDados:", erro);
   }
-}
-
-/* ================= VEICULOS ================= */
-
-window.salvarVeiculo = async function () {
-
-  const registro = {
-    placa: vPlaca.value,
-    marca: vMarca.value,
-    modelo: vModelo.value,
-    ano: Number(vAno.value),
-    categoria: vCategoria.value,
-    cor: vCor.value,
-    renavan: vRenavan.value,
-    kmAtual: Number(vKmAtual.value),
-    kmOleo: Number(vKmOleo.value)
-  };
-
-  const { error } = await db.from("veiculos").insert([registro]);
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar veículo");
-    return;
-  }
-
-  limparVeiculo();
-  carregarDados();
-};
-
-function limparVeiculo() {
-
-  vPlaca.value = "";
-  vMarca.value = "";
-  vModelo.value = "";
-  vAno.value = "";
-  vCategoria.value = "";
-  vCor.value = "";
-  vRenavan.value = "";
-  vKmAtual.value = "";
-  vKmOleo.value = "";
-}
-
-/* ================= MOTORISTAS ================= */
-
-window.salvarMotorista = async function () {
-
-  const registro = {
-    nome: mNome.value,
-    cpf: mCpf.value,
-    cnh: mCnh.value,
-    telefone: mTelefone.value
-  };
-
-  const { error } = await db.from("motoristas").insert([registro]);
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar motorista");
-    return;
-  }
-
-  carregarDados();
-};
-
-/* ================= KM AUTOMÁTICO ================= */
-
-async function buscarKmAnterior() {
-
-  const placa = aVeiculo.value;
-  if (!placa) return;
-
-  const { data: ult } = await db
-    .from("abastecimentos")
-    .select("kmAtual")
-    .eq("veiculo", placa)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (ult?.kmAtual) {
-    aKmAnterior.value = ult.kmAtual;
-    return;
-  }
-
-  const { data: v } = await db
-    .from("veiculos")
-    .select("kmAtual")
-    .eq("placa", placa)
-    .maybeSingle();
-
-  aKmAnterior.value = v?.kmAtual || 0;
-}
-
-/* ================= ABASTECIMENTO ================= */
-
-window.salvarAbastecimento = async function () {
-
-  const preco = Number(aPreco.value);
-  const litros = Number(aQuantidade.value);
-
-  const kmAnterior = Number(aKmAnterior.value);
-  const kmAtual = Number(aKmAtual.value);
-
-  if (!aVeiculo.value || !aMotorista.value || !aData.value) {
-    alert("Preencha todos os campos");
-    return;
-  }
-
-  const kmRodado = kmAtual - kmAnterior;
-
-  if (kmRodado <= 0) {
-    alert("KM Atual deve ser maior que o KM Anterior");
-    return;
-  }
-
-  const total = preco * litros;
-  const custoKm = total / kmRodado;
-
-  const registro = {
-    veiculo: aVeiculo.value,
-    motorista: aMotorista.value,
-    preco,
-    litros,
-    total,
-    kmAnterior,
-    kmAtual,
-    kmRodado,
-    custoKm,
-    data: aData.value
-  };
-
-  const { error } = await db.from("abastecimentos").insert([registro]);
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar abastecimento");
-    return;
-  }
-
-  limparAbastecimento();
-  carregarDados();
-};
-
-function limparAbastecimento() {
-
-  aPreco.value = "";
-  aQuantidade.value = "";
-  aTotal.value = "";
-  aKmAtual.value = "";
-  aKmRodado.value = "";
-  aCustoKm.value = "";
-}
-
-/* ================= CALCULOS ================= */
-
-function calcularTotal() {
-
-  const preco = Number(aPreco.value) || 0;
-  const litros = Number(aQuantidade.value) || 0;
-
-  aTotal.value = (preco * litros).toFixed(2);
-}
-
-function calcularKm() {
-
-  const atual = Number(aKmAtual.value) || 0;
-  const anterior = Number(aKmAnterior.value) || 0;
-
-  const rodado = atual - anterior;
-
-  if (rodado > 0) {
-
-    aKmRodado.value = rodado;
-    aCustoKm.value = (Number(aTotal.value) / rodado).toFixed(2);
-  }
-}
-
-/* ================= RENDERS ================= */
-
-function renderVeiculos() {
-
-  listaVeiculos.innerHTML = veiculos.map(v =>
-    `<li><b>${v.placa}</b> — ${v.marca} ${v.modelo}</li>`
-  ).join("");
-
-  const options =
-    `<option value="">Selecione</option>` +
-    veiculos.map(v => `<option value="${v.placa}">${v.placa}</option>`).join("");
-
-  // abastecimento
-  if (aVeiculo) {
-    aVeiculo.innerHTML = options;
-  }
-
-  // manutenção
-  if (manVeiculo) {
-    manVeiculo.innerHTML = options;
-  }
-
-}
-
-
-function renderMotoristas() {
-
-  if (!listaMotoristas) return;
-
-  // TABELA EXTRATO
-  listaMotoristas.innerHTML = motoristas.map(m => `
-    <tr>
-      <td>${m.nome || ""}</td>
-      <td>${m.cpf || ""}</td>
-      <td>${m.cnh || ""}</td>
-      <td>${m.telefone || ""}</td>
-    </tr>
-  `).join("");
-
-  // SELECT ABASTECIMENTO
-  if (aMotorista) {
-    aMotorista.innerHTML =
-      `<option value="">Selecione</option>` +
-      motoristas.map(m => `<option>${m.nome}</option>`).join("");
-  }
-
-}
-
-
-
-function renderAbastecimentos() {
-
-  listaAbastecimentos.innerHTML = abastecimentos.map(a =>
-    `<tr>
-      <td>${new Date(a.data).toLocaleDateString()}</td>
-      <td>${a.veiculo}</td>
-      <td>${a.motorista}</td>
-      <td>${a.litros}</td>
-      <td>R$ ${a.total.toFixed(2)}</td>
-      <td>${a.kmRodado}</td>
-      <td>${a.custoKm.toFixed(2)}</td>
-      <td>-</td>
-    </tr>`
-  ).join("");
 }
 
 /* ================= DASHBOARD ================= */
 
 function atualizarDashboard() {
 
-  if (!window.cVeiculos) return;
+  if (!cVeiculos) return;
 
   cVeiculos.textContent = veiculos.length;
   cMotoristas.textContent = motoristas.length;
   cAbastecimentos.textContent = abastecimentos.length;
 
-  const total = abastecimentos.reduce((s, a) => s + Number(a.total || 0), 0);
+  let total = 0;
+
+  abastecimentos.forEach(a => {
+    total += Number(a.total || 0);
+  });
 
   totalCombustivel.textContent =
-    total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    total.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 }
+
 
 
 /* ================= BI EXECUTIVO ================= */
 
 function atualizarBIExecutivo() {
+
+  if (!window.biTotal ||
+      !window.biLitros ||
+      !window.biKm ||
+      !window.biCustoKm) {
+
+    // mapeia se ainda não estiver ligado
+    window.biTotal = $("biTotal");
+    window.biLitros = $("biLitros");
+    window.biKm = $("biKm");
+    window.biCustoKm = $("biCustoKm");
+  }
+
+  if (!biTotal) return;
 
   let total = 0;
   let litros = 0;
@@ -462,21 +256,21 @@ function atualizarBIExecutivo() {
 
   abastecimentos.forEach(a => {
 
-    const gasto = Number(a.total);
-    const lit = Number(a.litros);
-    const rodado = Number(a.kmRodado);
+    const gasto = Number(a.total || 0);
+    const lit = Number(a.litros || 0);
+    const rodado = Number(a.kmRodado || 0);
 
-    if (!isNaN(gasto)) total += gasto;
-    if (!isNaN(lit)) litros += lit;
+    total += gasto;
+    litros += lit;
 
-    if (!isNaN(rodado) && rodado > 0) {
-      km += rodado;
-    }
-
+    if (rodado > 0) km += rodado;
   });
 
   biTotal.textContent =
-    total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    total.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 
   biLitros.textContent = litros.toFixed(1);
   biKm.textContent = km.toFixed(0);
@@ -490,259 +284,154 @@ function atualizarBIExecutivo() {
       : "R$ 0,00";
 }
 
+window.salvarMotorista = async function () {
 
-/* ================= RANKING VEÍCULOS ================= */
+  const registro = {
+    nome: mNome.value,
+    cpf: mCpf.value,
+    cnh: mCnh.value,
+    telefone: mTelefone.value
+  };
 
-function atualizarRankingVeiculos() {
+  let error;
 
-  if (!window.rankingVeiculos) return;
+  if (window.motoristaEditando) {
 
-  const mapa = {};
+    ({ error } = await db
+      .from("motoristas")
+      .update(registro)
+      .eq("id", window.motoristaEditando));
 
-  abastecimentos.forEach(a => {
+    window.motoristaEditando = null;
 
-    const placa = a.veiculo;
-    const total = Number(a.total) || 0;
-    const km = Number(a.kmRodado) || 0;
+  } else {
 
-    if (!mapa[placa]) {
-      mapa[placa] = { total: 0, km: 0 };
-    }
+    ({ error } = await db
+      .from("motoristas")
+      .insert([registro]));
+  }
 
-    mapa[placa].total += total;
-    mapa[placa].km += km;
+  if (error) {
+    alert("Erro ao salvar motorista");
+    return;
+  }
 
-  });
+  limparMotorista();
+  carregarDados();
+};
+function editarMotorista(id) {
 
-  const lista = Object.entries(mapa)
-    .map(([veiculo, dados]) => ({
-      veiculo,
-      total: dados.total,
-      km: dados.km,
-      custoKm: dados.km > 0 ? dados.total / dados.km : 0
-    }))
-    .sort((a, b) => b.total - a.total);
+  const m = motoristas.find(m => m.id === id);
+  if (!m) return;
 
-  rankingVeiculos.innerHTML = lista.map(v => `
+  mNome.value = m.nome;
+  mCpf.value = m.cpf;
+  mCnh.value = m.cnh;
+  mTelefone.value = m.telefone;
+
+  // ativa modo edição
+  window.motoristaEditando = id;
+
+  abrirPagina("motoristas");
+}
+async function excluirMotorista(id) {
+
+  if (!confirm("Deseja excluir este motorista?")) return;
+
+  const { error } = await db
+    .from("motoristas")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Erro ao excluir motorista");
+    console.error(error);
+    return;
+  }
+
+  carregarDados();
+}
+function limparMotorista() {
+
+  mNome.value = "";
+  mCpf.value = "";
+  mCnh.value = "";
+  mTelefone.value = "";
+}
+
+/* ================= RENDERS ================= */
+
+function renderVeiculos() {
+
+  if (!listaVeiculos) return;
+
+  listaVeiculos.innerHTML = veiculos.map(v => `
     <tr>
-      <td>${v.veiculo}</td>
-      <td>R$ ${v.total.toFixed(2)}</td>
-      <td>${v.km.toFixed(0)}</td>
-      <td>R$ ${v.custoKm.toFixed(2)}</td>
+      <td>${v.placa}</td>
+      <td>${v.marca}</td>
+      <td>${v.modelo}</td>
+      <td>${v.ano}</td>
+      <td>${v.categoria}</td>
+      <td>${v.cor}</td>
+      <td>${v.renavan}</td>
+      <td>${v.kmAtual}</td>
+      <td>${v.kmOleo}</td>
+    </tr>
+  `).join("");
+
+  if (aVeiculo) {
+    aVeiculo.innerHTML =
+      `<option value="">Selecione</option>` +
+      veiculos.map(v => `<option>${v.placa}</option>`).join("");
+  }
+
+  if (manVeiculo) {
+    manVeiculo.innerHTML =
+      `<option value="">Selecione</option>` +
+      veiculos.map(v => `<option>${v.placa}</option>`).join("");
+  }
+}
+
+function renderMotoristas() {
+
+  if (!window.listaMotoristas) return;
+
+  listaMotoristas.innerHTML = motoristas.map(m => `
+    <tr>
+      <td>${m.nome}</td>
+      <td>${m.cpf}</td>
+      <td>${m.cnh}</td>
+      <td>${m.telefone}</td>
+
+      <td>
+        <button onclick="editarMotorista('${m.id}')" class="btn-edit">✏</button>
+        <button onclick="excluirMotorista('${m.id}')" class="btn-delete">🗑</button>
+      </td>
     </tr>
   `).join("");
 }
 
 
-/* ================= RANKING MOTORISTAS ================= */
+function renderAbastecimentos() {
 
-function atualizarRankingMotoristas() {
+  if (!listaAbastecimentos) return;
 
-  if (!window.rankingMotoristas) return;
-
-  const mapa = {};
-
-  abastecimentos.forEach(a => {
-
-    const nome = a.motorista;
-    const total = Number(a.total) || 0;
-    const km = Number(a.kmRodado) || 0;
-
-    if (!mapa[nome]) {
-      mapa[nome] = { total: 0, km: 0 };
-    }
-
-    mapa[nome].total += total;
-    mapa[nome].km += km;
-
-  });
-
-  const lista = Object.entries(mapa)
-    .map(([motorista, dados]) => ({
-      motorista,
-      total: dados.total,
-      km: dados.km,
-      custoKm: dados.km > 0 ? dados.total / dados.km : 0
-    }))
-    .sort((a, b) => b.total - a.total);
-
-  rankingMotoristas.innerHTML = lista.map(m => `
+  listaAbastecimentos.innerHTML = abastecimentos.map(a => `
     <tr>
-      <td>${m.motorista}</td>
-      <td>R$ ${m.total.toFixed(2)}</td>
-      <td>${m.km.toFixed(0)}</td>
-      <td>R$ ${m.custoKm.toFixed(2)}</td>
+      <td>${new Date(a.data).toLocaleDateString()}</td>
+      <td>${a.veiculo}</td>
+      <td>${a.motorista}</td>
+      <td>${a.litros}</td>
+      <td>R$ ${Number(a.total).toFixed(2)}</td>
+      <td>${a.kmRodado}</td>
+      <td>${Number(a.custoKm).toFixed(2)}</td>
     </tr>
   `).join("");
 }
-
-
-/* ================= RANKING MANUTENÇÃO ================= */
-
-function atualizarRankingManutencao() {
-
-  if (!window.rankingManutencao) return;
-
-  const mapa = {};
-
-  manutencoes.forEach(m => {
-
-    const placa = m.veiculo;
-    const valor = Number(m.valor) || 0;
-
-    mapa[placa] = (mapa[placa] || 0) + valor;
-
-  });
-
-  const lista = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1]);
-
-  rankingManutencao.innerHTML = lista.map(([veiculo, total]) => `
-    <tr>
-      <td>${veiculo}</td>
-      <td>R$ ${total.toFixed(2)}</td>
-    </tr>
-  `).join("");
-}
-
-
-/* ================= GRAFICOS ================= */
-
-let grafV = null;
-let grafM = null;
-let grafTopVeiculos = null;
-let grafTopManutencao = null;
-
-
-/* ===== GRAFICO VEÍCULOS ===== */
-
-function graficoVeiculos() {
-
-  const canvas = document.getElementById("grafVeiculos");
-  if (!canvas) return;
-
-  const mapa = {};
-
-  abastecimentos.forEach(a => {
-    const placa = a.veiculo;
-    const total = Number(a.total) || 0;
-    mapa[placa] = (mapa[placa] || 0) + total;
-  });
-
-  if (grafV) grafV.destroy();
-
-  grafV = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: Object.keys(mapa),
-      datasets: [{
-        label: "Gasto por Veículo (R$)",
-        data: Object.values(mapa)
-      }]
-    },
-    options: { responsive: true }
-  });
-}
-
-
-/* ===== GRAFICO MOTORISTAS ===== */
-
-function graficoMotoristas() {
-
-  const canvas = document.getElementById("grafMotoristas");
-  if (!canvas) return;
-
-  const mapa = {};
-
-  abastecimentos.forEach(a => {
-    const nome = a.motorista;
-    const total = Number(a.total) || 0;
-    mapa[nome] = (mapa[nome] || 0) + total;
-  });
-
-  if (grafM) grafM.destroy();
-
-  grafM = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: Object.keys(mapa),
-      datasets: [{
-        label: "Gasto por Motorista (R$)",
-        data: Object.values(mapa)
-      }]
-    },
-    options: { responsive: true }
-  });
-}
-
-
-/* ===== TOP VEÍCULOS ===== */
-
-function graficoTopVeiculos() {
-
-  const canvas = document.getElementById("grafTopVeiculos");
-  if (!canvas) return;
-
-  const mapa = {};
-
-  abastecimentos.forEach(a => {
-    const placa = a.veiculo;
-    const total = Number(a.total) || 0;
-    mapa[placa] = (mapa[placa] || 0) + total;
-  });
-
-  const top = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  if (grafTopVeiculos) grafTopVeiculos.destroy();
-
-  grafTopVeiculos = new Chart(canvas, {
-    type: "pie",
-    data: {
-      labels: top.map(i => i[0]),
-      datasets: [{ data: top.map(i => i[1]) }]
-    }
-  });
-}
-
-
-/* ===== TOP MANUTENÇÃO ===== */
-
-function graficoTopManutencao() {
-
-  const canvas = document.getElementById("grafTopManutencao");
-  if (!canvas) return;
-
-  const mapa = {};
-
-  manutencoes.forEach(m => {
-    const placa = m.veiculo;
-    const valor = Number(m.valor) || 0;
-    mapa[placa] = (mapa[placa] || 0) + valor;
-  });
-
-  const top = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  if (grafTopManutencao) grafTopManutencao.destroy();
-
-  grafTopManutencao = new Chart(canvas, {
-    type: "doughnut",
-    data: {
-      labels: top.map(i => i[0]),
-      datasets: [{ data: top.map(i => i[1]) }]
-    }
-  });
-}
-
-
-/* ================= RENDER MANUTENÇÕES ================= */
 
 function renderManutencoes() {
 
-  if (!$("listaManutencoes")) return;
+  if (!listaManutencoes) return;
 
   listaManutencoes.innerHTML = manutencoes.map(m => `
     <tr>
@@ -750,88 +439,66 @@ function renderManutencoes() {
       <td>${m.veiculo}</td>
       <td>${m.categoria}</td>
       <td>${m.descricao || ""}</td>
-      <td>R$ ${Number(m.valor || 0).toFixed(2)}</td>
+      <td>R$ ${Number(m.valor).toFixed(2)}</td>
     </tr>
   `).join("");
 }
-function graficoMotoristas() {
 
-  const canvas = document.getElementById("grafMotoristas");
-  if (!canvas) return;
+/* ================= CALCULOS ================= */
 
-  const mapa = {};
+function calcularTotal() {
 
-  abastecimentos.forEach(a => {
+  if (!aPreco || !aQuantidade || !aTotal) return;
 
-    const nome = a.motorista;
-    const total = Number(a.total) || 0;
+  const preco = Number(aPreco.value) || 0;
+  const litros = Number(aQuantidade.value) || 0;
 
-    mapa[nome] = (mapa[nome] || 0) + total;
-
-  });
-
-  const labels = Object.keys(mapa);
-  const valores = Object.values(mapa);
-
-  if (window.grafM) grafM.destroy();
-
-  grafM = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Gasto por Motorista (R$)",
-        data: valores
-      }]
-    },
-    options: {
-      responsive: true
-    }
-  });
-
+  aTotal.value = (preco * litros).toFixed(2);
 }
-/* ================= MANUTENÇÃO ================= */
 
-window.salvarManutencao = async function () {
+function calcularKm() {
 
-  const veiculo = manVeiculo.value;
-  const categoria = manCategoria.value;
-  const descricao = manDescricao.value;
-  const valor = Number(manValor.value);
-  const data = manData.value;
+  if (!aKmAtual || !aKmAnterior) return;
 
-  if (!veiculo || !categoria || !valor || !data) {
-    alert("Preencha todos os campos da manutenção");
-    return;
+  const atual = Number(aKmAtual.value) || 0;
+  const anterior = Number(aKmAnterior.value) || 0;
+
+  const rodado = atual - anterior;
+
+  if (rodado > 0) {
+    aKmRodado.value = rodado;
+    aCustoKm.value = (Number(aTotal.value || 0) / rodado).toFixed(2);
   }
+}
 
-  const registro = {
-    veiculo,
-    categoria,
-    descricao,
-    valor,
-    data
-  };
+/* ================= KM AUTO ================= */
 
-  const { error } = await db.from("manutencoes").insert([registro]);
+function buscarKmAnterior() {
 
-  if (error) {
-    console.error(error);
-    alert("Erro ao salvar manutenção");
-    return;
-  }
+  if (!aVeiculo || !aKmAnterior) return;
 
-  limparManutencao();
-  carregarDados();
+  const placa = aVeiculo.value;
+  if (!placa) return;
 
-  alert("Manutenção salva com sucesso ✅");
-};
-function limparManutencao() {
+  db.from("abastecimentos")
+    .select("kmAtual")
+    .eq("veiculo", placa)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+    .then(({ data }) => {
 
-  manVeiculo.value = "";
-  manCategoria.value = "";
-  manDescricao.value = "";
-  manValor.value = "";
-  manData.value = "";
+      if (data?.kmAtual) {
+        aKmAnterior.value = data.kmAtual;
+        return;
+      }
 
+      return db.from("veiculos")
+        .select("kmAtual")
+        .eq("placa", placa)
+        .maybeSingle();
+    })
+    .then(res => {
+      aKmAnterior.value = res?.data?.kmAtual || 0;
+    });
 }
