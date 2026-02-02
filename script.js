@@ -1,3 +1,9 @@
+let grafVeiculos = null;
+let grafMotoristas = null;
+let grafTopVeiculos = null;
+let grafTopManutencao = null;
+
+
 /* ================= SUPABASE ================= */
 
 const SUPABASE_URL = "https://uxgbohbyqfchurhlsztt.supabase.co";
@@ -1194,3 +1200,76 @@ window.excluirAbastecimento = excluirAbastecimento;
 window.editarManutencao = editarManutencao;
 window.excluirManutencao = excluirManutencao;
 
+function graficoVeiculos() {
+
+  const canvas = document.getElementById("grafVeiculos");
+  if (!canvas) return;
+
+  // agrupa gasto por veículo
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    if (!mapa[a.veiculo]) mapa[a.veiculo] = 0;
+    mapa[a.veiculo] += Number(a.total || 0);
+  });
+
+  const labels = Object.keys(mapa);
+  const dados = Object.values(mapa);
+
+  if (grafVeiculos instanceof Chart) {
+    grafVeiculos.destroy();
+  }
+
+  grafVeiculos = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Gasto por Veículo (R$)",
+        data: dados,
+        backgroundColor: "#d4af37"
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+function graficoMotoristas() {
+
+  const canvas = document.getElementById("grafMotoristas");
+  if (!canvas) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    if (!mapa[a.motorista]) mapa[a.motorista] = 0;
+    mapa[a.motorista] += Number(a.total || 0);
+  });
+
+  if (grafMotoristas instanceof Chart) {
+    grafMotoristas.destroy();
+  }
+
+  grafMotoristas = new Chart(canvas, {
+    type: "pie",
+    data: {
+      labels: Object.keys(mapa),
+      datasets: [{
+        data: Object.values(mapa),
+        backgroundColor: [
+          "#d4af37",
+          "#1e293b",
+          "#64748b",
+          "#fbbf24"
+        ]
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+}
