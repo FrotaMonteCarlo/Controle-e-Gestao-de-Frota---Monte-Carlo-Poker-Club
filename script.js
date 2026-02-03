@@ -356,6 +356,8 @@ const { data: man } = await db
     renderMotoristas();
     renderAbastecimentos();
     renderManutencoes();
+    renderAlertaTrocaOleo();
+
 
     atualizarDashboard();
     if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
@@ -1092,6 +1094,34 @@ function renderManutencoes() {
   `).join("");
 }
 
+function renderAlertaTrocaOleo() {
+
+  const box = document.getElementById("alertaOleo");
+  if (!box) return;
+
+  const lista = verificarTrocaOleo();
+  const pendentes = lista.filter(v => v.status !== "OK");
+
+  if (pendentes.length === 0) {
+    box.innerHTML = "✅ Nenhum veículo pendente de troca de óleo";
+    box.className = "alerta-ok";
+    return;
+  }
+
+  box.className = "alerta-warning";
+
+  box.innerHTML = `
+    ⚠️ <strong>Alerta de Troca de Óleo</strong>
+    <ul>
+      ${pendentes.map(v => `
+        <li>
+          <strong>${v.placa}</strong> — ${v.kmRodado} km rodados
+          (${v.status})
+        </li>
+      `).join("")}
+    </ul>
+  `;
+}
 
 /* ================= CALCULOS ================= */
 
@@ -1311,3 +1341,29 @@ window.atualizarRankingVeiculos = atualizarRankingVeiculos;
 // manutenção
 window.editarManutencao = editarManutencao;
 window.excluirManutencao = excluirManutencao;
+function verificarTrocaOleo() {
+
+  const LIMITE_TROCA = 10000;
+  const ALERTA_KM = 9000;
+
+  return veiculos.map(v => {
+
+    const kmAtual = Number(v.kmAtual || 0);
+    const kmUltimaTroca = Number(v.kmOleo || 0);
+    const kmRodado = kmAtual - kmUltimaTroca;
+
+    let status = "OK";
+
+    if (kmRodado >= LIMITE_TROCA) {
+      status = "VENCIDO";
+    } else if (kmRodado >= ALERTA_KM) {
+      status = "ATENÇÃO";
+    }
+
+    return {
+      ...v,
+      kmRodado,
+      status
+    };
+  });
+}

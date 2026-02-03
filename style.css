@@ -153,12 +153,22 @@ body {
 /* ALERTA */
 
 .alerta-oleo {
-  padding: 14px 18px;
-  background: #e7f8f1;
+  padding: 15px;
   border-radius: 12px;
-  font-weight: bold;
-  margin-bottom: 25px;
+  margin: 20px 0;
+  font-weight: 600;
 }
+
+.alerta-ok {
+  background: #e9f7ef;
+  color: #1e8449;
+}
+
+.alerta-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
 
 /* ================= GRAFICOS ================= */
 
