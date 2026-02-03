@@ -176,7 +176,6 @@ window.salvarManutencao = async function () {
     data: manData.value
   };
 
-  // validação mínima
   if (!registro.veiculo || !registro.categoria || !registro.valor || !registro.data) {
     alert("Preencha todos os campos obrigatórios da manutenção");
     return;
@@ -184,7 +183,8 @@ window.salvarManutencao = async function () {
 
   let res;
 
-  // ===== EDITAR =====
+  // ===== SALVAR MANUTENÇÃO =====
+
   if (window.manutencaoEditando) {
 
     res = await db
@@ -196,7 +196,6 @@ window.salvarManutencao = async function () {
 
   } else {
 
-    // ===== INSERIR =====
     res = await db
       .from("manutencoes")
       .insert([registro]);
@@ -206,6 +205,25 @@ window.salvarManutencao = async function () {
     console.error(res.error);
     alert("Erro ao salvar manutenção");
     return;
+  }
+
+  // ===== SE FOR TROCA DE ÓLEO → ATUALIZA VEÍCULO =====
+
+  if (registro.categoria === "Troca de Óleo") {
+
+    const veiculoAtual = veiculos.find(v => v.placa === registro.veiculo);
+
+    if (veiculoAtual) {
+
+      const kmAtual = Number(veiculoAtual.kmAtual || 0);
+
+      await db
+        .from("veiculos")
+        .update({ kmOleo: kmAtual })
+        .eq("placa", registro.veiculo);
+
+      console.log("KM ÓLEO ATUALIZADO AUTOMATICAMENTE:", kmAtual);
+    }
   }
 
   limparManutencao();
@@ -356,11 +374,10 @@ const { data: man } = await db
     renderMotoristas();
     renderAbastecimentos();
     renderManutencoes();
-    renderAlertaTrocaOleo();
-
-
+    
     atualizarDashboard();
     if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
+    renderAlertaTrocaOleo();
 
     // ===== BI =====
      atualizarRankingVeiculos();
@@ -406,6 +423,38 @@ function atualizarDashboard() {
     });
 }
 
+function verificarTrocaOleo() {
+
+  const alerta = $("alertaOleo");
+  if (!alerta) return;
+
+  const LIMITE_KM = 5000;
+
+  const pendentes = veiculos.filter(v => {
+
+    const atual = Number(v.kmAtual || 0);
+    const ultimo = Number(v.kmOleo || 0);
+
+    return (atual - ultimo) >= LIMITE_KM;
+  });
+
+  if (pendentes.length === 0) {
+
+    alerta.className = "alerta-oleo alerta-ok";
+    alerta.innerHTML = "✔ Nenhum veículo pendente";
+
+  } else {
+
+    alerta.className = "alerta-oleo alerta-warning";
+
+    alerta.innerHTML =
+      `⚠ ${pendentes.length} veículo(s) precisam trocar óleo:<br>` +
+      pendentes.map(v =>
+        `${v.placa} (${v.kmAtual - v.kmOleo} km)`
+      ).join("<br>");
+  }
+}
+verificarTrocaOleo();
 
 
 /* ================= BI EXECUTIVO ================= */
