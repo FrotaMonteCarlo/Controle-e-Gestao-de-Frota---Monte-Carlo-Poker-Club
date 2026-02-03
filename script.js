@@ -243,20 +243,24 @@ async function excluirManutencao(id) {
 
   if (!confirm("Deseja realmente excluir esta manutenção?")) return;
 
-  const { error } = await db
+  console.log("Tentando excluir manutenção:", id);
+
+  const { data, error } = await db
     .from("manutencoes")
     .delete()
-    .eq("id", id);
+    .match({ id: id })   // match é mais confiável que eq
+    .select();           // força retorno real
 
   if (error) {
-    console.error(error);
+    console.error("ERRO DELETE MANUTENÇÃO:", error);
     alert("Erro ao excluir manutenção");
     return;
   }
 
+  console.log("REMOVIDO DO BANCO:", data);
+
   carregarDados();
 }
-
 
 
 function limparManutencao() {
@@ -1273,3 +1277,37 @@ function graficoMotoristas() {
     }
   });
 }
+function atualizarRankingVeiculos() {
+
+  const container = document.getElementById("rankingVeiculos");
+  if (!container) return;
+
+  const mapa = {};
+
+  abastecimentos.forEach(a => {
+    if (!mapa[a.veiculo]) mapa[a.veiculo] = 0;
+    mapa[a.veiculo] += Number(a.total || 0);
+  });
+
+  const ranking = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  container.innerHTML = ranking.map(
+    ([veiculo, total], i) => `
+      <div>${i + 1}º ${veiculo} — 
+        ${total.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        })}
+      </div>
+    `
+  ).join("");
+}
+window.graficoVeiculos = graficoVeiculos;
+window.graficoMotoristas = graficoMotoristas;
+window.atualizarRankingVeiculos = atualizarRankingVeiculos;
+
+// manutenção
+window.editarManutencao = editarManutencao;
+window.excluirManutencao = excluirManutencao;
