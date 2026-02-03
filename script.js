@@ -81,6 +81,11 @@ window.logoutSistema = function () {
   verificarSessao();
 };
 
+function isConsulta() {
+  return usuarioLogado && usuarioLogado.perfil === "consulta";
+}
+
+
 // ===== ENTER PARA LOGIN =====
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -108,6 +113,31 @@ function verificarSessao() {
   if (!loginScreen || !appSistema) return;
 
   if (usuarioLogado) {
+
+    // ===== BLOQUEIO PERFIL CONSULTA =====
+
+if (usuarioLogado.perfil === "consulta") {
+
+  // desativa todos botões de ação
+  document.querySelectorAll("button").forEach(btn => {
+
+    const texto = btn.innerText.toLowerCase();
+
+    if (
+      texto.includes("salvar") ||
+      texto.includes("excluir") ||
+      texto.includes("editar")
+    ) {
+
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+      btn.style.cursor = "not-allowed";
+
+    }
+
+  });
+
+}
 
     loginScreen.style.display = "none";
     appSistema.style.display = "flex";
@@ -229,6 +259,11 @@ function mapearInputs() {
 
 window.salvarManutencao = async function () {
 
+if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para salvar");
+  return;
+}
+
   const registro = {
     veiculo: manVeiculo.value,
     categoria: manCategoria.value,
@@ -297,6 +332,11 @@ window.salvarManutencao = async function () {
 
 function editarManutencao(id) {
 
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para editar");
+  return;
+}
+
   const m = manutencoes.find(item => item.id === id);
 
   if (!m) {
@@ -319,6 +359,11 @@ function editarManutencao(id) {
 
 
 async function excluirManutencao(id) {
+
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para excluir");
+  return;
+}
 
   if (!confirm("Deseja realmente excluir esta manutenção?")) return;
 
@@ -789,6 +834,12 @@ function graficoTopManutencao() {
 
 window.salvarMotorista = async function () {
 
+if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para salvar");
+  return;
+}
+
+
   const registro = {
     nome: mNome.value,
     cpf: mCpf.value,
@@ -827,6 +878,11 @@ window.salvarMotorista = async function () {
 
 function editarMotorista(id) {
 
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para editar");
+  return;
+}
+
   const m = motoristas.find(item => item.id === id);
 
   if (!m) {
@@ -845,6 +901,11 @@ function editarMotorista(id) {
 }
 
 async function excluirMotorista(id) {
+
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para excluir");
+  return;
+}
 
   if (!confirm("Deseja realmente excluir este motorista?")) return;
 
@@ -879,6 +940,11 @@ function limparMotorista() {
 /* ================= ABASTECIMENTO ================= */
 
 window.salvarAbastecimento = async function () {
+
+if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para salvar");
+  return;
+}
 
   const preco = Number(aPreco.value);
   const litros = Number(aQuantidade.value);
@@ -951,6 +1017,11 @@ window.salvarAbastecimento = async function () {
 
 window.salvarVeiculo = async function () {
 
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para salvar");
+  return;
+}
+
   const registro = {
     placa: vPlaca.value,
     marca: vMarca.value,
@@ -1003,6 +1074,11 @@ window.salvarVeiculo = async function () {
 
 function editarVeiculo(id) {
 
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para editar");
+  return;
+}
+
   const v = veiculos.find(item => item.id === id);
 
   if (!v) {
@@ -1029,6 +1105,12 @@ function editarVeiculo(id) {
 
 
 async function excluirVeiculo(id) {
+
+if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para excluir");
+  return;
+}
+
 
   if (!confirm("Deseja realmente excluir este veículo?")) return;
 
@@ -1294,6 +1376,11 @@ function buscarKmAnterior() {
 }
 async function excluirAbastecimento(id) {
 
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para excluir");
+  return;
+}
+
   if (!confirm("Excluir este abastecimento?")) return;
 
   const { error } = await db
@@ -1310,6 +1397,11 @@ async function excluirAbastecimento(id) {
   carregarDados();
 }
 function editarAbastecimento(id) {
+
+  if (isConsulta()) {
+  alert("Usuário consulta não possui permissão para editar");
+  return;
+}
 
   const a = abastecimentos.find(i => i.id === id);
   if (!a) return;
