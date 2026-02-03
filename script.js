@@ -48,8 +48,11 @@ document.addEventListener("DOMContentLoaded", () => {
 /* ================= LOGIN ================= */
 
 const usuarios = [
-  { usuario: "admin", senha: "201816.Ab", perfil: "admin", nome: "Administrador" }
+  { usuario: "admin", senha: "201816.Ab", perfil: "admin", nome: "Administrador" },
+  { usuario: "consulta", senha: "123456", perfil: "consulta", nome: "Usuário Consulta" }
 ];
+
+
 
 let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
@@ -78,6 +81,28 @@ window.logoutSistema = function () {
   verificarSessao();
 };
 
+// ===== ENTER PARA LOGIN =====
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const userInput = document.getElementById("loginUser");
+  const passInput = document.getElementById("loginPass");
+
+  if (!userInput || !passInput) return;
+
+  function enterLogin(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      fazerLogin();
+    }
+  }
+
+  userInput.addEventListener("keydown", enterLogin);
+  passInput.addEventListener("keydown", enterLogin);
+
+});
+
+
 function verificarSessao() {
 
   if (!loginScreen || !appSistema) return;
@@ -94,6 +119,7 @@ function verificarSessao() {
     setTimeout(() => {
       carregarDados();
       abrirPagina("dashboard");
+      aplicarPermissoes();
     }, 100);
 
   } else {
@@ -103,6 +129,41 @@ function verificarSessao() {
 
   }
 }
+
+function aplicarPermissoes() {
+
+  if (!usuarioLogado) return;
+
+  // perfil consulta = somente leitura
+  if (usuarioLogado.perfil === "consulta") {
+
+    // Esconde botões de salvar
+    document.querySelectorAll("button").forEach(btn => {
+
+      const texto = btn.innerText.toLowerCase();
+
+      if (
+        texto.includes("salvar") ||
+        texto.includes("excluir") ||
+        texto.includes("editar") ||
+        texto.includes("novo")
+      ) {
+        btn.style.display = "none";
+      }
+
+    });
+
+    // Bloqueia inputs
+    document.querySelectorAll("input, select, textarea").forEach(el => {
+      el.disabled = true;
+    });
+
+    console.log("MODO CONSULTA ATIVADO");
+
+  }
+
+}
+
 
 /* ================= MAP INPUTS ================= */
 
