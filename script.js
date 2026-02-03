@@ -374,6 +374,7 @@ const { data: man } = await db
     renderMotoristas();
     renderAbastecimentos();
     renderManutencoes();
+    verificarTrocaOleo();
     
     atualizarDashboard();
     if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
@@ -1392,27 +1393,67 @@ window.editarManutencao = editarManutencao;
 window.excluirManutencao = excluirManutencao;
 function verificarTrocaOleo() {
 
-  const LIMITE_TROCA = 10000;
-  const ALERTA_KM = 9000;
+  const LIMITE_ATENCAO = 8000;
+  const LIMITE_CRITICO = 10000;
 
-  return veiculos.map(v => {
+  const box = document.getElementById("alertaOleo");
+  if (!box) return;
 
-    const kmAtual = Number(v.kmAtual || 0);
-    const kmUltimaTroca = Number(v.kmOleo || 0);
-    const kmRodado = kmAtual - kmUltimaTroca;
+  let pendentesCritico = [];
+  let pendentesAtencao = [];
 
-    let status = "OK";
+  veiculos.forEach(v => {
 
-    if (kmRodado >= LIMITE_TROCA) {
-      status = "VENCIDO";
-    } else if (kmRodado >= ALERTA_KM) {
-      status = "ATENÇÃO";
+    if (!v.kmOleo || !v.kmAtual) return;
+
+    const rodado = v.kmAtual - v.kmOleo;
+
+    if (rodado >= LIMITE_CRITICO) {
+
+      pendentesCritico.push({
+        placa: v.placa,
+        km: rodado
+      });
+
+    } else if (rodado >= LIMITE_ATENCAO) {
+
+      pendentesAtencao.push({
+        placa: v.placa,
+        km: rodado
+      });
+
     }
 
-    return {
-      ...v,
-      kmRodado,
-      status
-    };
   });
+
+  // ===== PRIORIDADE CRÍTICA =====
+  if (pendentesCritico.length > 0) {
+
+    box.className = "alerta-oleo alerta-critico";
+
+    box.innerHTML = `
+      🔴 <strong>${pendentesCritico.length} veículos EM ATRASO na troca de óleo</strong><br>
+      ${pendentesCritico.map(v => `${v.placa} — ${v.km} km`).join("<br>")}
+    `;
+
+    return;
+  }
+
+  // ===== ATENÇÃO =====
+  if (pendentesAtencao.length > 0) {
+
+    box.className = "alerta-oleo alerta-atencao";
+
+    box.innerHTML = `
+      🟡 <strong>${pendentesAtencao.length} veículos próximos da troca de óleo</strong><br>
+      ${pendentesAtencao.map(v => `${v.placa} — ${v.km} km`).join("<br>")}
+    `;
+
+    return;
+  }
+
+  // ===== OK =====
+  box.className = "alerta-oleo alerta-ok";
+  box.innerHTML = "✔ Nenhum veículo pendente de troca de óleo";
+
 }

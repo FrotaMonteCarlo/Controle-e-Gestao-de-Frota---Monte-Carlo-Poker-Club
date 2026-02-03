@@ -908,3 +908,27 @@ body.tv-mode h1{
 .hidden{
   display:none!important;
 }
+.alerta-oleo {
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.alerta-ok {
+  background: #e6f9ee;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+
+.alerta-atencao {
+  background: #fff3cd;
+  color: #664d03;
+  border: 1px solid #ffecb5;
+}
+
+.alerta-critico {
+  background: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
