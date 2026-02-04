@@ -703,13 +703,6 @@ button {
 
 }
 
-/* ================= MODO TV DESATIVADO ================= */
-
-/* Mantido apenas para compatibilidade futura */
-body.tv-mode {
-  all: unset;
-}
-
 /* ================= LOGIN CLEAN PREMIUM ================= */
 
 .login-wrapper{
@@ -878,8 +871,21 @@ body.tv-mode {
   color: #842029;
   border: 1px solid #f5c2c7;
 }
-#tvMode,
-.tv-btn,
-.tv-mode {
-  display: none !important;
+#btnTV,
+.btn-tv{
+  display:none !important;
+}
+.badge-consulta {
+  background:#fbbf24;
+  color:#000;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-weight:600;
+  margin-left:8px;
+}
+button:disabled {
+  opacity:0.4;
+  cursor:not-allowed;
+  filter: grayscale(1);
 }

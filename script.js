@@ -141,13 +141,21 @@ if (usuarioLogado.perfil === "consulta") {
 
     loginScreen.style.display = "none";
     appSistema.style.display = "flex";
+    // REMOVE BOTÃO TV DEFINITIVO
+setTimeout(() => {
+  document.querySelectorAll("#btnTV, .btn-tv").forEach(el => el.remove());
+  console.log("BOTÃO TV REMOVIDO APÓS LOGIN");
+}, 50);
+
 
     if (usuarioLogado.perfil === "consulta") {
 
-  nomeUsuario.textContent = "Usuário Consulta";
-  perfilUsuario.textContent = "";
+  nomeUsuario.innerHTML = "👁️ Usuário Consulta";
+  perfilUsuario.innerHTML = `<span class="badge-consulta">SOMENTE LEITURA</span>`;
+
 
 } else {
+
 
   nomeUsuario.textContent = usuarioLogado.nome;
   perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
@@ -1620,3 +1628,27 @@ function verificarTrocaOleo() {
   box.innerHTML = "✔ Nenhum veículo pendente de troca de óleo";
 
 }
+// ================= REMOVE BOTÃO TV DEFINITIVO =================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const removerTV = () => {
+    const tv = document.getElementById("btnTV");
+    if (tv) {
+      tv.remove();
+      console.log("BOTÃO TV REMOVIDO COM SUCESSO");
+    }
+  };
+
+  // roda ao carregar
+  removerTV();
+
+  // garante remoção mesmo se for injetado depois
+  const observer = new MutationObserver(removerTV);
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+});
