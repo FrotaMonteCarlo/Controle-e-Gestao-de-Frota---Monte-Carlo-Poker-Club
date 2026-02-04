@@ -31,23 +31,35 @@
 
   <div class="login-card">
 
-    <img src="logo-montecarlo.png" class="login-logo">
+    <img src="logo.png" class="login-logo">
 
-    <h1>Monte Carlo Poker Club</h1>
-    <span class="login-sub">Acesso Corporativo Frota</span>
+    <h1>Acesso ao Sistema</h1>
+    <span class="login-sub">Controle Corporativo de Frota</span>
 
-    <input id="loginUser" placeholder="Usuário">
-    <input id="loginPass" type="password" placeholder="Senha">
+    <input
+      id="loginUser"
+      type="text"
+      placeholder="Usuário"
+      autocomplete="username"
+    >
 
-    <button onclick="fazerLogin()" class="btn-login">
+    <input
+      id="loginPass"
+      type="password"
+      placeholder="Senha"
+      autocomplete="current-password"
+    >
+
+    <button class="btn-login" onclick="fazerLogin()">
       Entrar
     </button>
 
-    <div id="loginErro" class="login-erro"></div>
+    <span id="loginErro" class="login-erro"></span>
 
   </div>
 
 </div>
+
 
 <!-- ================= SISTEMA ================= -->
 
@@ -87,21 +99,17 @@ Monte Carlo — Controle Corporativo e Gestão de Frota
 
 <!-- ===== USER AREA ===== -->
 
-<div class="user-area">
+<div class="topbar">
+  <div class="user-area">
+    <div class="user-info">
+      <span id="nomeUsuario">Administrador</span>
+      <small id="perfilUsuario">ADMIN</small>
+    </div>
 
-  <div class="user-info">
-    <span id="nomeUsuario">ADMIN</span>
-    <small id="perfilUsuario">Administrador</small>
+    <div class="avatar" id="avatarUsuario">MC</div>
+
+    <button class="btn-logout" onclick="logoutSistema()">Sair</button>
   </div>
-
-  <div class="avatar" id="avatarUsuario">MC</div>
-
-  <button id="btnTV" class="btn-tv">📺 TV</button>
-
-  <button id="btnLogout" class="btn-logout" onclick="logoutSistema()">
-    Sair
-  </button>
-
 </div>
 
 </header>
@@ -191,86 +199,108 @@ Monte Carlo — Controle Corporativo e Gestão de Frota
 
 <section id="bi" class="page hidden">
 
-<h1>BI Executivo — Performance da Frota</h1>
+  <h1>📊 BI Executivo — Performance da Frota</h1>
 
-<div class="dashboard-grid">
+  <!-- ===== KPIs ===== -->
 
-<div class="dash-card">
-<span>Total Gasto</span>
-<strong id="biTotal">R$ 0,00</strong>
-</div>
+  <div class="dashboard-grid">
 
-<div class="dash-card">
-<span>Litros Consumidos</span>
-<strong id="biLitros">0</strong>
-</div>
+    <div class="dash-card">
+      <span>Total Gasto</span>
+      <strong id="biTotal">R$ 0,00</strong>
+    </div>
 
-<div class="dash-card">
-<span>KM Rodados</span>
-<strong id="biKm">0</strong>
-</div>
+    <div class="dash-card">
+      <span>Litros Consumidos</span>
+      <strong id="biLitros">0</strong>
+    </div>
 
-<div class="dash-card">
-<span>Custo Médio KM</span>
-<strong id="biCustoKm">R$ 0,00</strong>
-</div>
+    <div class="dash-card">
+      <span>KM Rodados</span>
+      <strong id="biKm">0</strong>
+    </div>
 
-</div>
+    <div class="dash-card">
+      <span>Custo Médio por KM</span>
+      <strong id="biCustoKm">R$ 0,00</strong>
+    </div>
 
-<div class="grafico-card" style="margin-top:20px">
-<h3>Top 5 Veículos por Consumo</h3>
-<canvas id="grafTopVeiculos"></canvas>
-</div>
+  </div>
 
-<h2 style="margin-top:20px">Ranking de Veículos</h2>
+  <!-- ===== GRÁFICO ABASTECIMENTO ===== -->
 
-<table class="tabela-extrato">
-<thead>
-<tr>
-<th>Veículo</th>
-<th>Total Gasto</th>
-<th>KM</th>
-<th>Custo/KM</th>
-</tr>
-</thead>
-<tbody id="rankingVeiculos"></tbody>
-</table>
+  <div class="grafico-card" style="margin-top:25px">
 
-<h2 style="margin-top:20px">Ranking de Motoristas</h2>
+    <h3>🚗 Top 5 Veículos — Consumo de Combustível</h3>
 
-<table class="tabela-extrato">
-<thead>
-<tr>
-<th>Motorista</th>
-<th>Total Gasto</th>
-<th>KM</th>
-<th>Custo/KM</th>
-</tr>
-</thead>
-<tbody id="rankingMotoristas"></tbody>
-</table>
+    <canvas id="grafTopVeiculos"></canvas>
 
-<h2 style="margin-top:30px">Top 5 Veículos — Manutenção</h2>
+  </div>
 
-<div class="grafico-card">
-  <canvas id="grafTopManutencao"></canvas>
-</div>
+  <!-- ===== RANKING VEÍCULOS ===== -->
 
-<h2 style="margin-top:20px">Ranking de Gastos com Manutenção</h2>
+  <h2 style="margin-top:30px">🏆 Ranking de Veículos (Combustível)</h2>
 
-<table class="tabela-extrato">
+  <table class="tabela-extrato">
 
-<thead>
-<tr>
-<th>Veículo</th>
-<th>Total Manutenção</th>
-</tr>
-</thead>
+    <thead>
+      <tr>
+        <th>Veículo</th>
+        <th>Total Gasto</th>
+        <th>KM Rodados</th>
+        <th>Custo / KM</th>
+      </tr>
+    </thead>
 
-<tbody id="rankingManutencao"></tbody>
+    <tbody id="rankingVeiculos"></tbody>
 
-</table>
+  </table>
 
+  <!-- ===== RANKING MOTORISTAS ===== -->
+
+  <h2 style="margin-top:30px">👤 Ranking de Motoristas (Consumo)</h2>
+
+  <table class="tabela-extrato">
+
+    <thead>
+      <tr>
+        <th>Motorista</th>
+        <th>Total Gasto</th>
+        <th>KM Rodados</th>
+        <th>Custo / KM</th>
+      </tr>
+    </thead>
+
+    <tbody id="rankingMotoristas"></tbody>
+
+  </table>
+
+  <!-- ===== GRÁFICO MANUTENÇÃO ===== -->
+
+  <div class="grafico-card" style="margin-top:30px">
+
+    <h3>🛠 Top 5 Veículos — Gastos com Manutenção</h3>
+
+    <canvas id="grafTopManutencao"></canvas>
+
+  </div>
+
+  <!-- ===== RANKING MANUTENÇÃO ===== -->
+
+  <h2 style="margin-top:30px">📋 Ranking de Gastos com Manutenção</h2>
+
+  <table class="tabela-extrato">
+
+    <thead>
+      <tr>
+        <th>Veículo</th>
+        <th>Total em Manutenção</th>
+      </tr>
+    </thead>
+
+    <tbody id="rankingManutencao"></tbody>
+
+  </table>
 
 </section>
 
@@ -526,7 +556,6 @@ Monte Carlo — Controle Corporativo e Gestão de Frota
 <tbody id="listaAbastecimentos"></tbody>
 
 
-
 </table>
 
 </section>
@@ -537,12 +566,9 @@ Monte Carlo — Controle Corporativo e Gestão de Frota
 
 </div>
 
-
-
 <!-- JS -->
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
-
 
 </body>
 </html>

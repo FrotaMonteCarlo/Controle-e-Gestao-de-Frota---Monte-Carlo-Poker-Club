@@ -464,7 +464,46 @@ function abrirPagina(id) {
 
   if (page) page.classList.remove("hidden");
   if (link) link.classList.add("active");
+
+  // ===== RECARREGA GRÁFICOS AO ABRIR DASHBOARD =====
+
+  if (id === "dashboard") {
+    setTimeout(() => {
+      graficoVeiculos();
+      graficoMotoristas();
+    }, 150);
+  }
+
+  if (id === "bi") {
+    setTimeout(() => {
+      graficoTopVeiculos();
+      graficoTopManutencao();
+    }, 150);
+  }
+
+
+
+
+  // ===== ATIVA GRÁFICOS SOMENTE QUANDO DASHBOARD/BI ESTIVER VISÍVEL =====
+
+  if (id === "dashboard" || id === "bi") {
+
+
+    setTimeout(() => {
+
+      graficoVeiculos();
+      graficoMotoristas();
+      graficoTopVeiculos();
+      graficoTopManutencao();
+
+      console.log("GRÁFICOS RENDERIZADOS COM SUCESSO");
+
+    }, 200);
+
+  }
+
 }
+
 
 /* ================= LOAD ================= */
 
@@ -510,13 +549,22 @@ const { data: man } = await db
      atualizarRankingManutencao();
 
      // ===== GRÁFICOS =====
+    
      setTimeout(() => {
-     graficoVeiculos();
-     graficoMotoristas();
-    graficoTopVeiculos();
-    graficoTopManutencao();
-    }, 150);
 
+  // gráficos abastecimento
+  if (abastecimentos.length > 0) {
+    graficoVeiculos();
+    graficoMotoristas();
+    graficoTopVeiculos();
+  }
+
+  // gráfico manutenção
+  if (manutencoes.length > 0) {
+    graficoTopManutencao();
+  }
+
+}, 300);
 
     console.log("TELA ATUALIZADA COM SUCESSO");
 
@@ -670,11 +718,8 @@ function atualizarRankingVeiculos() {
 
 function atualizarRankingMotoristas() {
 
-  if (!window.rankingMotoristas) {
-    window.rankingMotoristas = $("rankingMotoristas");
-  }
-
-  if (!rankingMotoristas) return;
+  const tbody = document.getElementById("rankingMotoristas");
+  if (!tbody) return;
 
   const mapa = {};
 
@@ -682,20 +727,35 @@ function atualizarRankingMotoristas() {
 
     const nome = a.motorista;
     const total = Number(a.total || 0);
+    const km = Number(a.kmRodado || 0);
 
-    mapa[nome] = (mapa[nome] || 0) + total;
+    if (!mapa[nome]) {
+      mapa[nome] = { total: 0, km: 0 };
+    }
+
+    mapa[nome].total += total;
+    mapa[nome].km += km;
   });
 
-  const lista = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1]);
+  const ranking = Object.entries(mapa)
+    .map(([nome, d]) => ({
+      nome,
+      total: d.total,
+      km: d.km,
+      custoKm: d.km > 0 ? d.total / d.km : 0
+    }))
+    .sort((a, b) => b.total - a.total);
 
-  rankingMotoristas.innerHTML = lista.map(([nome, total]) => `
+  tbody.innerHTML = ranking.map(r => `
     <tr>
-      <td>${nome}</td>
-      <td>R$ ${total.toFixed(2)}</td>
+      <td>${r.nome}</td>
+      <td>${r.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+      <td>${r.km.toFixed(0)}</td>
+      <td>${r.custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
     </tr>
   `).join("");
 }
+
 
 function atualizarRankingManutencao() {
 
@@ -753,7 +813,7 @@ function graficoVeiculos() {
     },
     options: {
       responsive: true
-    }
+        }
   });
 }
 
@@ -822,17 +882,29 @@ function graficoTopVeiculos() {
 function graficoTopManutencao() {
 
   const canvas = document.getElementById("grafTopManutencao");
-  if (!canvas) return;
+
+  if (!canvas) {
+    console.warn("Canvas grafTopManutencao não encontrado");
+    return;
+  }
+
+  if (manutencoes.length === 0) {
+    console.warn("Sem dados de manutenção para gráfico");
+    return;
+  }
 
   const mapa = {};
 
   manutencoes.forEach(m => {
-    mapa[m.veiculo] = (mapa[m.veiculo] || 0) + Number(m.valor || 0);
+
+    if (!m.veiculo || !m.valor) return;
+
+    mapa[m.veiculo] = (mapa[m.veiculo] || 0) + Number(m.valor);
   });
 
   const top = Object.entries(mapa)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,5);
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   if (grafTopManutencao instanceof Chart) {
     grafTopManutencao.destroy();
@@ -841,13 +913,32 @@ function graficoTopManutencao() {
   grafTopManutencao = new Chart(canvas, {
     type: "doughnut",
     data: {
-      labels: top.map(i => i[0]),
+      labels: top.map(v => v[0]),
       datasets: [{
-        data: top.map(i => i[1])
+        data: top.map(v => v[1]),
+        backgroundColor: [
+          "#dc2626",
+          "#ea580c",
+          "#facc15",
+          "#22c55e",
+          "#3b82f6"
+        ]
       }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
     }
   });
+
+  console.log("Gráfico TOP MANUTENÇÃO carregado");
+
 }
+
 
 
 window.salvarMotorista = async function () {
@@ -1530,34 +1621,43 @@ function graficoMotoristas() {
 }
 function atualizarRankingVeiculos() {
 
-  const container = document.getElementById("rankingVeiculos");
-  if (!container) return;
+  const tbody = document.getElementById("rankingVeiculos");
+  if (!tbody) return;
 
   const mapa = {};
 
   abastecimentos.forEach(a => {
-    if (!mapa[a.veiculo]) mapa[a.veiculo] = 0;
-    mapa[a.veiculo] += Number(a.total || 0);
+
+    const placa = a.veiculo;
+    const total = Number(a.total || 0);
+    const km = Number(a.kmRodado || 0);
+
+    if (!mapa[placa]) {
+      mapa[placa] = { total: 0, km: 0 };
+    }
+
+    mapa[placa].total += total;
+    mapa[placa].km += km;
   });
 
   const ranking = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    .map(([placa, d]) => ({
+      placa,
+      total: d.total,
+      km: d.km,
+      custoKm: d.km > 0 ? d.total / d.km : 0
+    }))
+    .sort((a, b) => b.total - a.total);
 
-  container.innerHTML = ranking.map(
-    ([veiculo, total], i) => `
-      <div>${i + 1}º ${veiculo} — 
-        ${total.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL"
-        })}
-      </div>
-    `
-  ).join("");
+  tbody.innerHTML = ranking.map(r => `
+    <tr>
+      <td>${r.placa}</td>
+      <td>${r.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+      <td>${r.km.toFixed(0)}</td>
+      <td>${r.custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
+    </tr>
+  `).join("");
 }
-window.graficoVeiculos = graficoVeiculos;
-window.graficoMotoristas = graficoMotoristas;
-window.atualizarRankingVeiculos = atualizarRankingVeiculos;
 
 // manutenção
 window.editarManutencao = editarManutencao;
