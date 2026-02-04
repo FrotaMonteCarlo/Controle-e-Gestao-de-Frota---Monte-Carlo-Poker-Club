@@ -142,8 +142,18 @@ if (usuarioLogado.perfil === "consulta") {
     loginScreen.style.display = "none";
     appSistema.style.display = "flex";
 
-    nomeUsuario.textContent = usuarioLogado.nome;
-    perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
+    if (usuarioLogado.perfil === "consulta") {
+
+  nomeUsuario.textContent = "Usuário Consulta";
+  perfilUsuario.textContent = "";
+
+} else {
+
+  nomeUsuario.textContent = usuarioLogado.nome;
+  perfilUsuario.textContent = usuarioLogado.perfil.toUpperCase();
+
+}
+
 
     // garante DOM visível antes de carregar dados
     setTimeout(() => {

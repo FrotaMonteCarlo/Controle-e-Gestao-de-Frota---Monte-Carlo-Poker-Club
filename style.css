@@ -702,68 +702,14 @@ button {
   }
 
 }
-/* ================= MODO TV ================= */
 
-.btn-tv{
-  background:#111;
-  color:#fff;
-  border:none;
-  padding:6px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:12px;
+/* ================= MODO TV DESATIVADO ================= */
+
+/* Mantido apenas para compatibilidade futura */
+body.tv-mode {
+  all: unset;
 }
 
-.btn-tv:hover{
-  background:#000;
-}
-
-/* ESTADO TV */
-
-body.tv-mode .sidebar{
-  width:70px;
-}
-
-body.tv-mode .sidebar span,
-body.tv-mode .sidebar .menu-text{
-  display:none;
-}
-
-body.tv-mode .topbar{
-  height:50px;
-}
-
-body.tv-mode .content{
-  padding:30px;
-}
-
-/* CARDS GRANDES */
-
-body.tv-mode .dash-card{
-  min-height:130px;
-}
-
-body.tv-mode .dash-card strong{
-  font-size:28px;
-}
-
-body.tv-mode .icon{
-  width:60px;
-  height:60px;
-  font-size:28px;
-}
-
-/* GRÁFICOS GRANDES */
-
-body.tv-mode canvas{
-  max-height:320px !important;
-}
-
-/* TÍTULO */
-
-body.tv-mode h1{
-  font-size:34px;
-}
 /* ================= LOGIN CLEAN PREMIUM ================= */
 
 .login-wrapper{
@@ -931,4 +877,9 @@ body.tv-mode h1{
   background: #f8d7da;
   color: #842029;
   border: 1px solid #f5c2c7;
+}
+#tvMode,
+.tv-btn,
+.tv-mode {
+  display: none !important;
 }
