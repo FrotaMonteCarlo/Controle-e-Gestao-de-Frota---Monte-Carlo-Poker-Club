@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+
 /* ================= LOGIN ================= */
 
 const usuarios = [
@@ -63,24 +64,25 @@ const usuarios = [
 
 let usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-window.fazerLogin = function () {
+window.fazerLogin = function(){
 
-  const user = loginUser.value;
-  const pass = loginPass.value;
+  const user = document.getElementById("loginUser").value;
+  const pass = document.getElementById("loginPass").value;
 
   const encontrado = usuarios.find(u =>
     u.usuario === user && u.senha === pass
   );
 
-  if (!encontrado) {
-    loginErro.textContent = "Usuário ou senha inválidos";
+  if(!encontrado){
+    document.getElementById("loginErro").textContent =
+      "Usuário ou senha inválidos";
     return;
   }
 
-  usuarioLogado = encontrado;
-  localStorage.setItem("usuarioLogado", JSON.stringify(usuarioLogado));
-  verificarSessao();
+  localStorage.setItem("usuarioLogado", JSON.stringify(encontrado));
+  location.reload();
 };
+
 
 window.logoutSistema = function () {
   localStorage.removeItem("usuarioLogado");
@@ -97,22 +99,20 @@ function isConsulta() {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const userInput = document.getElementById("loginUser");
-  const passInput = document.getElementById("loginPass");
+  const u = document.getElementById("loginUser");
+  const p = document.getElementById("loginPass");
 
-  if (!userInput || !passInput) return;
+  if(!u || !p) return;
 
-  function enterLogin(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      fazerLogin();
-    }
+  function enterLogin(e){
+    if(e.key === "Enter") fazerLogin();
   }
 
-  userInput.addEventListener("keydown", enterLogin);
-  passInput.addEventListener("keydown", enterLogin);
+  u.addEventListener("keydown", enterLogin);
+  p.addEventListener("keydown", enterLogin);
 
 });
+
 
 
 function verificarSessao() {
@@ -276,7 +276,31 @@ function mapearInputs() {
   if (aKmAtual) aKmAtual.addEventListener("input", calcularKm);
   if (aVeiculo) aVeiculo.addEventListener("change", buscarKmAnterior);
 
-  console.log("MAPEAMENTO DE INPUTS CONCLUÍDO COM SUCESSO");
+ console.log("MAPEAMENTO DE INPUTS CONCLUÍDO COM SUCESSO");
+}
+
+
+/* ================= KM ANTERIOR AUTOMÁTICO ================= */
+
+function atualizarKmAnterior(){
+
+  if(!aVeiculo.value) return;
+
+  const ult = abastecimentos
+    .filter(a => a.veiculo === aVeiculo.value)
+    .sort((a,b)=> new Date(b.data) - new Date(a.data))[0];
+
+  if(ult){
+    aKmAnterior.value = ult.kmAtual;
+    return;
+  }
+
+  const veic = veiculos.find(v => v.placa === aVeiculo.value);
+  if(veic){
+    aKmAnterior.value = veic.kmAtual || 0;
+  }
+}
+
 
 
 
@@ -354,20 +378,19 @@ if (isConsulta()) {
 };
 
 
-
 function editarManutencao(id) {
 
-  if (isConsulta()) {
-  alert("Usuário consulta não possui permissão para editar");
-  return;
-}
+  const m = manutencoes.find(x => x.id === id);
+  if(!m) return;
 
-  const m = manutencoes.find(item => item.id === id);
+  manVeiculo.value = m.veiculo;
+  manCategoria.value = m.categoria;
+  manDescricao.value = m.descricao;
+  manValor.value = m.valor;
+  manData.value = m.data;
 
-  if (!m) {
-    alert("Registro de manutenção não encontrado");
-    return;
-  }
+  window.editandoManutencao = id;
+
 
   // popula formulário
   manVeiculo.value = m.veiculo;
@@ -457,20 +480,21 @@ window.excluirManutencao = excluirManutencao;
   aKmAtual?.addEventListener("input", calcularKm);
   aVeiculo?.addEventListener("change", buscarKmAnterior);
 
-}
 
 /* ================= SPA ================= */
 
-function abrirPagina(id) {
+function abrirPagina(id){
 
-  document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
-  document.querySelectorAll(".menu-link").forEach(a => a.classList.remove("active"));
+  document.querySelectorAll(".page")
+    .forEach(p => p.classList.add("hidden"));
 
-  const page = document.getElementById(id);
-  const link = document.querySelector(`[data-page="${id}"]`);
+  document.querySelectorAll(".menu-link")
+    .forEach(a => a.classList.remove("active"));
 
-  if (page) page.classList.remove("hidden");
-  if (link) link.classList.add("active");
+  document.getElementById(id)?.classList.remove("hidden");
+  document.querySelector(`[data-page="${id}"]`)?.classList.add("active");
+
+
 
   // ===== RECARREGA GRÁFICOS AO ABRIR DASHBOARD =====
 
@@ -495,22 +519,19 @@ function abrirPagina(id) {
 
   if (id === "dashboard" || id === "bi") {
 
+  setTimeout(() => {
 
-    setTimeout(() => {
+    graficoVeiculos();
+    graficoMotoristas();
+    graficoTopVeiculos();
+    graficoTopManutencao();
 
-      graficoVeiculos();
-      graficoMotoristas();
-      graficoTopVeiculos();
-      graficoTopManutencao();
+    console.log("GRÁFICOS RENDERIZADOS COM SUCESSO");
 
-      console.log("GRÁFICOS RENDERIZADOS COM SUCESSO");
-
-    }, 200);
-
-  }
+  }, 200);
 
 }
-
+}
 
 /* ================= LOAD ================= */
 
@@ -680,50 +701,6 @@ function atualizarBIExecutivo() {
           currency: "BRL"
         })
       : "R$ 0,00";
-}
-
-function atualizarRankingVeiculos(){
-
-  const mapa = {};
-
-  abastecimentos.forEach(a => {
-
-    const placa = a.veiculo;
-    const gasto = Number(a.total) || 0;
-    const km = Number(a.kmRodado) || 0;
-
-    if(!mapa[placa]){
-      mapa[placa] = { gasto:0, km:0 };
-    }
-
-    mapa[placa].gasto += gasto;
-    mapa[placa].km += km;
-
-  });
-
-  const ranking = Object.entries(mapa)
-    .map(([placa,val])=>({
-      placa,
-      gasto:val.gasto,
-      km:val.km,
-      custoKm: val.km ? (val.gasto/val.km) : 0
-    }))
-    .sort((a,b)=>b.gasto-a.gasto);
-
-  const tbody = document.getElementById("rankingVeiculos");
-  tbody.innerHTML="";
-
-  ranking.forEach(r=>{
-    tbody.innerHTML += `
-      <tr>
-        <td>${r.placa}</td>
-        <td>R$ ${r.gasto.toFixed(2)}</td>
-        <td>${r.km}</td>
-        <td>R$ ${r.custoKm.toFixed(2)}</td>
-      </tr>
-    `;
-  });
-
 }
 
 
@@ -1168,6 +1145,8 @@ if (isConsulta()) {
 
   alert("Abastecimento salvo com sucesso ✅");
 };
+
+  
 
 
 /* ================= VEÍCULOS ================= */
@@ -1665,10 +1644,14 @@ function atualizarRankingVeiculos(){
   const mapa = {};
 
   abastecimentos.forEach(a=>{
-    if(!mapa[a.veiculo]) mapa[a.veiculo]={gasto:0, km:0};
 
-    mapa[a.veiculo].gasto += Number(a.valor || 0);
-    mapa[a.veiculo].km += Number(a.km || 0);
+    if(!mapa[a.veiculo]){
+      mapa[a.veiculo]={gasto:0, km:0};
+    }
+
+    mapa[a.veiculo].gasto += Number(a.total || 0);
+    mapa[a.veiculo].km += Number(a.kmRodado || 0);
+
   });
 
   const ranking = Object.entries(mapa)
@@ -1681,15 +1664,17 @@ function atualizarRankingVeiculos(){
     .sort((a,b)=>b.gasto-a.gasto);
 
   const tbody = document.getElementById("rankingVeiculos");
+  if(!tbody) return;
+
   tbody.innerHTML="";
 
   ranking.forEach(r=>{
     tbody.innerHTML += `
       <tr>
         <td>${r.veiculo}</td>
-        <td>R$ ${r.gasto.toFixed(2)}</td>
+        <td>${r.gasto.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
         <td>${r.km}</td>
-        <td>R$ ${r.custo.toFixed(2)}</td>
+        <td>${r.custo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
       </tr>
     `;
   });
