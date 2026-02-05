@@ -3,6 +3,13 @@ let grafMotoristas = null;
 let grafTopVeiculos = null;
 let grafTopManutencao = null;
 
+const coresClean = [
+  "#d6dfeaff",
+  "#97b3d8ff",
+  "#93b7ebff",
+  "#2158a5ff",
+  "#334155"
+];
 
 /* ================= SUPABASE ================= */
 
@@ -537,36 +544,29 @@ const { data: man } = await db
     renderMotoristas();
     renderAbastecimentos();
     renderManutencoes();
+    
     verificarTrocaOleo();
+    renderAlertaTrocaOleo();
     
     atualizarDashboard();
-    if (typeof atualizarBIExecutivo === "function") atualizarBIExecutivo();
-    renderAlertaTrocaOleo();
 
     // ===== BI =====
-     atualizarRankingVeiculos();
-     atualizarRankingMotoristas();
-     atualizarRankingManutencao();
+    atualizarRankingVeiculos();
+    atualizarRankingMotoristas();
+    atualizarRankingManutencao();
 
-     // ===== GRÁFICOS =====
-    
-     setTimeout(() => {
+    atualizarBIExecutivo();
 
-  // gráficos abastecimento
-  if (abastecimentos.length > 0) {
-    graficoVeiculos();
-    graficoMotoristas();
-    graficoTopVeiculos();
-  }
+// ===== GRÁFICOS =====
+setTimeout(() => {
+  graficoVeiculos();
+  graficoMotoristas();
+  graficoTopVeiculos();
+  graficoTopManutencao();
+}, 200);
 
-  // gráfico manutenção
-  if (manutencoes.length > 0) {
-    graficoTopManutencao();
-  }
+console.log("TELA ATUALIZADA COM SUCESSO");
 
-}, 300);
-
-    console.log("TELA ATUALIZADA COM SUCESSO");
 
   } catch (erro) {
     console.error("ERRO carregarDados:", erro);
@@ -682,109 +682,122 @@ function atualizarBIExecutivo() {
       : "R$ 0,00";
 }
 
-function atualizarRankingVeiculos() {
-
-  if (!window.rankingVeiculos) {
-    window.rankingVeiculos = $("rankingVeiculos");
-  }
-
-  if (!rankingVeiculos) return;
+function atualizarRankingVeiculos(){
 
   const mapa = {};
 
   abastecimentos.forEach(a => {
 
     const placa = a.veiculo;
-    const total = Number(a.total || 0);
-    const km = Number(a.kmRodado || 0);
+    const gasto = Number(a.total) || 0;
+    const km = Number(a.kmRodado) || 0;
 
-    if (!mapa[placa]) mapa[placa] = { total: 0, km: 0 };
+    if(!mapa[placa]){
+      mapa[placa] = { gasto:0, km:0 };
+    }
 
-    mapa[placa].total += total;
+    mapa[placa].gasto += gasto;
     mapa[placa].km += km;
+
   });
 
-  const lista = Object.entries(mapa)
-    .sort((a, b) => b[1].total - a[1].total);
+  const ranking = Object.entries(mapa)
+    .map(([placa,val])=>({
+      placa,
+      gasto:val.gasto,
+      km:val.km,
+      custoKm: val.km ? (val.gasto/val.km) : 0
+    }))
+    .sort((a,b)=>b.gasto-a.gasto);
 
-  rankingVeiculos.innerHTML = lista.map(([placa, d]) => `
-    <tr>
-      <td>${placa}</td>
-      <td>R$ ${d.total.toFixed(2)}</td>
-      <td>${d.km.toFixed(0)}</td>
-    </tr>
-  `).join("");
+  const tbody = document.getElementById("rankingVeiculos");
+  tbody.innerHTML="";
+
+  ranking.forEach(r=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.placa}</td>
+        <td>R$ ${r.gasto.toFixed(2)}</td>
+        <td>${r.km}</td>
+        <td>R$ ${r.custoKm.toFixed(2)}</td>
+      </tr>
+    `;
+  });
+
 }
 
-function atualizarRankingMotoristas() {
 
-  const tbody = document.getElementById("rankingMotoristas");
-  if (!tbody) return;
+function atualizarRankingMotoristas(){
 
   const mapa = {};
 
   abastecimentos.forEach(a => {
 
-    const nome = a.motorista;
-    const total = Number(a.total || 0);
-    const km = Number(a.kmRodado || 0);
+    const motorista = a.motorista;
+    const gasto = Number(a.total) || 0;
+    const km = Number(a.kmRodado) || 0;
 
-    if (!mapa[nome]) {
-      mapa[nome] = { total: 0, km: 0 };
+    if(!mapa[motorista]){
+      mapa[motorista] = { gasto:0, km:0 };
     }
 
-    mapa[nome].total += total;
-    mapa[nome].km += km;
+    mapa[motorista].gasto += gasto;
+    mapa[motorista].km += km;
+
   });
 
   const ranking = Object.entries(mapa)
-    .map(([nome, d]) => ({
+    .map(([nome,val])=>({
       nome,
-      total: d.total,
-      km: d.km,
-      custoKm: d.km > 0 ? d.total / d.km : 0
+      gasto:val.gasto,
+      km:val.km,
+      custoKm: val.km ? (val.gasto/val.km) : 0
     }))
-    .sort((a, b) => b.total - a.total);
+    .sort((a,b)=>b.gasto-a.gasto);
 
-  tbody.innerHTML = ranking.map(r => `
-    <tr>
-      <td>${r.nome}</td>
-      <td>${r.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-      <td>${r.km.toFixed(0)}</td>
-      <td>${r.custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-    </tr>
-  `).join("");
+  const tbody = document.getElementById("rankingMotoristas");
+  tbody.innerHTML="";
+
+  ranking.forEach(r=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.nome}</td>
+        <td>R$ ${r.gasto.toFixed(2)}</td>
+        <td>${r.km}</td>
+        <td>R$ ${r.custoKm.toFixed(2)}</td>
+      </tr>
+    `;
+  });
+
 }
 
 
-function atualizarRankingManutencao() {
-
-  if (!window.rankingManutencao) {
-    window.rankingManutencao = $("rankingManutencao");
-  }
-
-  if (!rankingManutencao) return;
+function atualizarRankingManutencao(){
 
   const mapa = {};
 
-  manutencoes.forEach(m => {
-
-    const placa = m.veiculo;
-    const valor = Number(m.valor || 0);
-
-    mapa[placa] = (mapa[placa] || 0) + valor;
+  manutencoes.forEach(m=>{
+    if(!mapa[m.veiculo]) mapa[m.veiculo]=0;
+    mapa[m.veiculo]+=Number(m.valor || 0);
   });
 
-  const lista = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1]);
+  const ranking = Object.entries(mapa)
+    .map(([veiculo,total])=>({veiculo,total}))
+    .sort((a,b)=>b.total-a.total);
 
-  rankingManutencao.innerHTML = lista.map(([placa, total]) => `
-    <tr>
-      <td>${placa}</td>
-      <td>R$ ${total.toFixed(2)}</td>
-    </tr>
-  `).join("");
+  const tbody = document.getElementById("rankingManutencao");
+  tbody.innerHTML="";
+
+  ranking.forEach(r=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.veiculo}</td>
+        <td>R$ ${r.total.toFixed(2)}</td>
+      </tr>
+    `;
+  });
 }
+
 
 function graficoVeiculos() {
 
@@ -807,9 +820,12 @@ function graficoVeiculos() {
     data: {
       labels: Object.keys(mapa),
       datasets: [{
-        label: "Gasto por Veículo",
-        data: Object.values(mapa)
-      }]
+  label: "Gasto por Veículo",
+  data: Object.values(mapa),
+  backgroundColor: coresClean,
+  borderRadius: 6
+}]
+
     },
     options: {
       responsive: true
@@ -826,27 +842,63 @@ function graficoMotoristas() {
   const mapa = {};
 
   abastecimentos.forEach(a => {
-    mapa[a.motorista] = (mapa[a.motorista] || 0) + Number(a.total || 0);
+    if (!mapa[a.motorista]) {
+      mapa[a.motorista] = { total: 0, km: 0 };
+    }
+
+    mapa[a.motorista].total += Number(a.total || 0);
+    mapa[a.motorista].km += Number(a.kmRodado || 0);
   });
+
+  const labels = Object.keys(mapa);
+  const valores = labels.map(n => mapa[n].total);
 
   if (grafMotoristas instanceof Chart) {
     grafMotoristas.destroy();
   }
 
   grafMotoristas = new Chart(canvas, {
-    type: "bar",
+    type: "pie",
     data: {
-      labels: Object.keys(mapa),
+      labels: labels,
       datasets: [{
-        label: "Gasto por Motorista",
-        data: Object.values(mapa)
+        data: valores,
+        backgroundColor: coresClean
       }]
     },
     options: {
-      responsive: true
+      responsive: true,
+      interaction: {
+        mode: "nearest",
+        intersect: true
+      },
+      plugins: {
+  legend: { position: "right" },
+  tooltip: {
+    enabled: true,
+    callbacks: {
+      label: function(context) {
+
+
+              const nome = context.label;
+              const total = mapa[nome].total;
+              const km = mapa[nome].km;
+              const custoKm = km > 0 ? total / km : 0;
+
+              return [
+                `Gasto: ${total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}`,
+                `KM: ${km.toFixed(0)}`,
+                `Custo/KM: ${custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}`
+              ];
+            }
+          }
+        }
+      }
     }
   });
 }
+
+
 
 function graficoTopVeiculos() {
 
@@ -915,15 +967,11 @@ function graficoTopManutencao() {
     data: {
       labels: top.map(v => v[0]),
       datasets: [{
-        data: top.map(v => v[1]),
-        backgroundColor: [
-          "#dc2626",
-          "#ea580c",
-          "#facc15",
-          "#22c55e",
-          "#3b82f6"
-        ]
-      }]
+  data: top.map(i => i[1]),
+  backgroundColor: coresClean
+}]
+
+  
     },
     options: {
       responsive: true,
@@ -1396,33 +1444,29 @@ function renderManutencoes() {
   `).join("");
 }
 
-function renderAlertaTrocaOleo() {
+function renderAlertaTrocaOleo(){
 
-  const box = document.getElementById("alertaOleo");
-  if (!box) return;
+  if(!veiculos || veiculos.length===0) return;
 
-  const lista = verificarTrocaOleo();
-  const pendentes = lista.filter(v => v.status !== "OK");
+  const alertaBox = document.getElementById("alertaOleo");
+  if(!alertaBox) return;
 
-  if (pendentes.length === 0) {
-    box.innerHTML = "✅ Nenhum veículo pendente de troca de óleo";
-    box.className = "alerta-ok";
+  const alerta = veiculos.filter(v=>{
+    const kmAtual = Number(v.km_atual || 0);
+    const kmTroca = Number(v.km_troca_oleo || 0);
+    return kmAtual >= kmTroca;
+  });
+
+  if(alerta.length===0){
+    alertaBox.className="alerta-oleo alerta-ok";
+    alertaBox.innerHTML="✔ Nenhum veículo pendente de troca de óleo";
     return;
   }
 
-  box.className = "alerta-warning";
-
-  box.innerHTML = `
-    ⚠️ <strong>Alerta de Troca de Óleo</strong>
-    <ul>
-      ${pendentes.map(v => `
-        <li>
-          <strong>${v.placa}</strong> — ${v.kmRodado} km rodados
-          (${v.status})
-        </li>
-      `).join("")}
-    </ul>
-  `;
+  alertaBox.className="alerta-oleo alerta-warning";
+  alertaBox.innerHTML=
+    "⚠ Veículos pendentes de troca de óleo:<br>"+
+    alerta.map(v=>v.placa).join(", ");
 }
 
 /* ================= CALCULOS ================= */
@@ -1571,10 +1615,12 @@ function graficoVeiculos() {
     data: {
       labels,
       datasets: [{
-        label: "Gasto por Veículo (R$)",
-        data: dados,
-        backgroundColor: "#d4af37"
-      }]
+  label: "Gasto por Veículo",
+  data: Object.values(mapa),
+  backgroundColor: coresClean,
+  borderRadius: 6
+}]
+
     },
     options: {
       responsive: true,
@@ -1603,61 +1649,52 @@ function graficoMotoristas() {
   grafMotoristas = new Chart(canvas, {
     type: "pie",
     data: {
-      labels: Object.keys(mapa),
       datasets: [{
-        data: Object.values(mapa),
-        backgroundColor: [
-          "#d4af37",
-          "#1e293b",
-          "#64748b",
-          "#fbbf24"
-        ]
-      }]
+  data: Object.values(mapa),
+  backgroundColor: coresClean
+}]
+
     },
     options: {
       responsive: true
     }
   });
 }
-function atualizarRankingVeiculos() {
-
-  const tbody = document.getElementById("rankingVeiculos");
-  if (!tbody) return;
+function atualizarRankingVeiculos(){
 
   const mapa = {};
 
-  abastecimentos.forEach(a => {
+  abastecimentos.forEach(a=>{
+    if(!mapa[a.veiculo]) mapa[a.veiculo]={gasto:0, km:0};
 
-    const placa = a.veiculo;
-    const total = Number(a.total || 0);
-    const km = Number(a.kmRodado || 0);
-
-    if (!mapa[placa]) {
-      mapa[placa] = { total: 0, km: 0 };
-    }
-
-    mapa[placa].total += total;
-    mapa[placa].km += km;
+    mapa[a.veiculo].gasto += Number(a.valor || 0);
+    mapa[a.veiculo].km += Number(a.km || 0);
   });
 
   const ranking = Object.entries(mapa)
-    .map(([placa, d]) => ({
-      placa,
-      total: d.total,
-      km: d.km,
-      custoKm: d.km > 0 ? d.total / d.km : 0
+    .map(([veiculo,d])=>({
+      veiculo,
+      gasto:d.gasto,
+      km:d.km,
+      custo: d.km ? d.gasto/d.km : 0
     }))
-    .sort((a, b) => b.total - a.total);
+    .sort((a,b)=>b.gasto-a.gasto);
 
-  tbody.innerHTML = ranking.map(r => `
-    <tr>
-      <td>${r.placa}</td>
-      <td>${r.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-      <td>${r.km.toFixed(0)}</td>
-      <td>${r.custoKm.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td>
-    </tr>
-  `).join("");
+  const tbody = document.getElementById("rankingVeiculos");
+  tbody.innerHTML="";
+
+  ranking.forEach(r=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.veiculo}</td>
+        <td>R$ ${r.gasto.toFixed(2)}</td>
+        <td>${r.km}</td>
+        <td>R$ ${r.custo.toFixed(2)}</td>
+      </tr>
+    `;
+  });
 }
+
 
 // manutenção
 window.editarManutencao = editarManutencao;
