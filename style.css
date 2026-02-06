@@ -1319,3 +1319,40 @@ canvas {
 .form-grid{
   margin-bottom:22px;
 }
+/* linhas mais compactas nos extratos */
+.tabela-extrato tbody tr td{
+  padding:10px 14px;   /* antes provavelmente 18~22px */
+  font-size:14px;
+}
+
+/* reduz altura da linha */
+.tabela-extrato tbody tr{
+  height:42px;
+}
+
+/* cabeçalho mais elegante */
+.tabela-extrato thead th{
+  padding:12px 14px;
+  font-size:13px;
+}
+/* ===== EXTRATO MAIS COMPACTO (Motoristas) ===== */
+
+#motoristas .tabela-extrato tbody tr td{
+  padding:6px 10px;
+  font-size:13px;
+}
+
+#motoristas .tabela-extrato tbody tr{
+  height:25px;
+}
+
+/* cabeçalho proporcional */
+#motoristas .tabela-extrato thead th{
+  padding:8px 10px;
+  font-size:13px;
+}
+.login-logo{
+  width:110px;
+  display:block;
+  margin:0 auto 18px;
+}

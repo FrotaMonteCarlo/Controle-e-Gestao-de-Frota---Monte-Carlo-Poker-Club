@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   mapearInputs();
   verificarSessao();
 
+  // MENU
   document.querySelectorAll(".menu-link").forEach(link => {
     link.addEventListener("click", e => {
       e.preventDefault();
@@ -50,7 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // BOTÃO SAIR
+  document.querySelector(".btn-logout")?.addEventListener("click", logoutSistema);
+
 });
+
 
 
 /* ================= LOGIN ================= */
@@ -300,9 +305,6 @@ function atualizarKmAnterior(){
     aKmAnterior.value = veic.kmAtual || 0;
   }
 }
-
-
-
 
 /* ================= MANUTENÇÃO ================= */
 

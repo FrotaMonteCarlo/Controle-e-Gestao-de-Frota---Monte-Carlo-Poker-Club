@@ -80,8 +80,9 @@
 <a href="#" class="menu-link" data-page="motoristas">Motoristas</a>
 <a href="#" class="menu-link" data-page="abastecimento">Abastecimento</a>
 <a href="#" class="menu-link" data-page="bi">BI Executivo</a>
-<a href="#" class="menu-link" class="manutencao">🛠 Manutenção</a>
-<a href="#" class="menu-link" class="financeiro">💰 Financeiro</a>
+<a href="#" class="menu-link" data-page="manutencao">🛠 Manutenção</a>
+<a href="#" class="menu-link" data-page="financeiro">💰 Financeiro</a>
+
 
 </nav>
 
@@ -102,7 +103,8 @@
 
     <div class="avatar">MC</div>
 
-    <button class="btn-logout">Sair</button>
+    <button class="btn-logout" onclick="logoutSistema()">Sair</button>
+
   </div>
 </div>
 
@@ -318,47 +320,33 @@
     <option value="Motor">Motor</option>
     <option value="Outros">Outros</option>
   </select>
-  
 
-  <!-- 🔥 PADRONIZADO PARA BATER COM O JS -->
-  <input id="manDescricao" placeholder="Descrição da manutenção">
-
-  <input id="manValor" type="number" step="0.01" placeholder="Valor R$">
-
+  <input id="manDescricao" placeholder="Descrição">
+  <input id="manValor" type="number" placeholder="Valor">
   <input id="manData" type="date">
+
+  <button onclick="salvarManutencao()">Salvar Manutenção</button>
 
 </div>
 
-<!-- ✅ BOTÃO CORRETO -->
-<button 
-  id="btnSalvarManutencao"
-  type="button"
-  onclick="salvarManutencao()"
-  class="btn-primary"
-  style="margin-top:15px"
->
-  Salvar Manutenção
-</button>
-
-<table class="tabela-extrato" style="margin-top:20px">
-
-<thead>
-<tr>
-  <th>Data</th>
-  <th>Veículo</th>
-  <th>Categoria</th>
-  <th>Descrição</th>
-  <th>Valor</th>
-</tr>
-</thead>
-
-<tbody id="listaManutencoes"></tbody>
-
+<table class="tabela-extrato">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Veículo</th>
+      <th>Categoria</th>
+      <th>Descrição</th>
+      <th>Valor</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody id="listaManutencoes"></tbody>
 </table>
 
 </section>
 
-<!-- ================= VEÍCULOS ================= -->
+
+  <!-- ================= VEÍCULOS ================= -->
 
 <section id="veiculos" class="page hidden">
 
