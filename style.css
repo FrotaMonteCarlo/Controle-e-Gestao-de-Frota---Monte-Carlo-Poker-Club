@@ -1460,3 +1460,56 @@ canvas {
   }
 
 }
+/* ================= MOBILE DASHBOARD CARDS ================= */
+
+@media(max-width:600px){
+
+  .dashboard-grid{
+    grid-template-columns: repeat(3, 1fr);
+    gap:12px;
+  }
+
+  .dash-card{
+    padding:12px 10px;
+    min-height:80px;
+    border-left:4px solid #d4af37;
+  }
+
+  .dash-card .icon{
+    width:32px;
+    height:32px;
+    font-size:16px;
+  }
+
+  .dash-card span{
+    font-size:10px;
+  }
+
+  .dash-card strong{
+    font-size:14px;
+  }
+
+}
+/* ================= MOBILE TITULOS ================= */
+
+@media(max-width:600px){
+
+  .page h1{
+    font-size:18px;
+    margin-bottom:12px;
+  }
+
+  h2{
+    font-size:16px;
+  }
+
+  h3{
+    font-size:14px;
+  }
+
+  .titulo-extrato{
+    font-size:16px;
+    margin-bottom:10px;
+  }
+
+}
