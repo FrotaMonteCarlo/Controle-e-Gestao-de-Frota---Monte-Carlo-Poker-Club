@@ -569,7 +569,6 @@ const { data: man } = await db
     renderManutencoes();
     
     verificarTrocaOleo();
-    renderAlertaTrocaOleo();
     
     atualizarDashboard();
 
@@ -618,40 +617,6 @@ function atualizarDashboard() {
       currency: "BRL"
     });
 }
-
-function verificarTrocaOleo() {
-
-  const alerta = $("alertaOleo");
-  if (!alerta) return;
-
-  const LIMITE_KM = 5000;
-
-  const pendentes = veiculos.filter(v => {
-
-    const atual = Number(v.kmAtual || 0);
-    const ultimo = Number(v.kmOleo || 0);
-
-    return (atual - ultimo) >= LIMITE_KM;
-  });
-
-  if (pendentes.length === 0) {
-
-    alerta.className = "alerta-oleo alerta-ok";
-    alerta.innerHTML = "✔ Nenhum veículo pendente";
-
-  } else {
-
-    alerta.className = "alerta-oleo alerta-warning";
-
-    alerta.innerHTML =
-      `⚠ ${pendentes.length} veículo(s) precisam trocar óleo:<br>` +
-      pendentes.map(v =>
-        `${v.placa} (${v.kmAtual - v.kmOleo} km)`
-      ).join("<br>");
-  }
-}
-verificarTrocaOleo();
-
 
 /* ================= BI EXECUTIVO ================= */
 
@@ -1077,10 +1042,10 @@ function limparMotorista() {
 
 window.salvarAbastecimento = async function () {
 
-if (isConsulta()) {
-  alert("Usuário consulta não possui permissão para salvar");
-  return;
-}
+  if (isConsulta()) {
+    alert("Usuário consulta não possui permissão para salvar");
+    return;
+  }
 
   const preco = Number(aPreco.value);
   const litros = Number(aQuantidade.value);
@@ -1118,8 +1083,6 @@ if (isConsulta()) {
 
   let error;
 
-  // ===== EDITAR OU INSERIR =====
-
   if (window.abastecimentoEditando) {
 
     ({ error } = await db
@@ -1142,8 +1105,22 @@ if (isConsulta()) {
     return;
   }
 
+  // ===== ATUALIZA KM DO VEÍCULO =====
+
+  const veiculoIndex = veiculos.findIndex(v => v.id == aVeiculo.value);
+
+  if (veiculoIndex !== -1) {
+    veiculos[veiculoIndex].kmAtual = kmAtual;
+  }
+
+  await db
+    .from("veiculos")
+    .update({ kmAtual: kmAtual })
+    .eq("id", aVeiculo.value);
+
   limparAbastecimento();
   carregarDados();
+  verificarTrocaOleo();
 
   alert("Abastecimento salvo com sucesso ✅");
 };
@@ -1686,72 +1663,70 @@ function atualizarRankingVeiculos(){
 // manutenção
 window.editarManutencao = editarManutencao;
 window.excluirManutencao = excluirManutencao;
-function verificarTrocaOleo() {
 
-  const LIMITE_ATENCAO = 8000;
-  const LIMITE_CRITICO = 10000;
+function verificarTrocaOleo(){
+
+  const LIMITE_TROCA = 10000;   // troca a cada 10k
+  const ALERTA_KM = 1000;       // alerta quando faltar 1000 km
+  const CRITICO_KM = 0;         // já passou da troca
 
   const box = document.getElementById("alertaOleo");
-  if (!box) return;
+  if(!box) return;
 
-  let pendentesCritico = [];
-  let pendentesAtencao = [];
+  const criticos = [];
+  const proximos = [];
 
   veiculos.forEach(v => {
 
-    if (!v.kmOleo || !v.kmAtual) return;
+    const kmAtual = Number(v.kmAtual || 0);
+    const kmOleo = Number(v.kmOleo || 0);
 
-    const rodado = v.kmAtual - v.kmOleo;
+    const kmProximaTroca = kmOleo + LIMITE_TROCA;
+    const kmRestante = kmProximaTroca - kmAtual;
 
-    if (rodado >= LIMITE_CRITICO) {
-
-      pendentesCritico.push({
+    // CRÍTICO (já passou)
+    if(kmRestante <= CRITICO_KM){
+      criticos.push({
         placa: v.placa,
-        km: rodado
+        atraso: Math.abs(kmRestante)
       });
+      return;
+    }
 
-    } else if (rodado >= LIMITE_ATENCAO) {
-
-      pendentesAtencao.push({
+    // PRÓXIMO DA TROCA
+    if(kmRestante <= ALERTA_KM){
+      proximos.push({
         placa: v.placa,
-        km: rodado
+        restante: kmRestante
       });
-
     }
 
   });
 
-  // ===== PRIORIDADE CRÍTICA =====
-  if (pendentesCritico.length > 0) {
-
+  // ===== CRÍTICO =====
+  if(criticos.length > 0){
     box.className = "alerta-oleo alerta-critico";
-
-    box.innerHTML = `
-      🔴 <strong>${pendentesCritico.length} veículos EM ATRASO na troca de óleo</strong><br>
-      ${pendentesCritico.map(v => `${v.placa} — ${v.km} km`).join("<br>")}
-    `;
-
+    box.innerHTML =
+      "🔴 Veículos com troca de óleo ATRASADA:<br>" +
+      criticos.map(v => `${v.placa} — atraso ${v.atraso} km`).join("<br>");
     return;
   }
 
   // ===== ATENÇÃO =====
-  if (pendentesAtencao.length > 0) {
-
-    box.className = "alerta-oleo alerta-atencao";
-
-    box.innerHTML = `
-      🟡 <strong>${pendentesAtencao.length} veículos próximos da troca de óleo</strong><br>
-      ${pendentesAtencao.map(v => `${v.placa} — ${v.km} km`).join("<br>")}
-    `;
-
+  if(proximos.length > 0){
+    box.className = "alerta-oleo alerta-warning";
+    box.innerHTML =
+      "🟡 Veículos próximos da troca de óleo:<br>" +
+      proximos.map(v => `${v.placa} — faltam ${v.restante} km`).join("<br>");
     return;
   }
 
   // ===== OK =====
   box.className = "alerta-oleo alerta-ok";
-  box.innerHTML = "✔ Nenhum veículo pendente de troca de óleo";
+  box.innerHTML = "✔ Nenhum veículo próximo da troca de óleo";
 
 }
+
 // ================= REMOVE BOTÃO TV DEFINITIVO =================
 
 document.addEventListener("DOMContentLoaded", () => {

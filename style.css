@@ -1356,3 +1356,74 @@ canvas {
   display:block;
   margin:0 auto 18px;
 }
+/* ================= MOBILE ================= */
+@media (max-width: 768px){
+
+  /* layout geral */
+  .app{
+    flex-direction: column;
+  }
+
+  /* sidebar vira topo */
+  .sidebar{
+    width:100%;
+    height:auto;
+    flex-direction:row;
+    padding:10px;
+    justify-content:space-between;
+  }
+
+  .sidebar .menu{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  .menu-link{
+    padding:8px 10px;
+    font-size:12px;
+  }
+
+  /* topo */
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .app-title{
+    font-size:16px;
+  }
+
+  /* grids viram coluna */
+  .dashboard-grid,
+  .graficos-grid,
+  .form-grid{
+    grid-template-columns: 1fr !important;
+  }
+
+  /* cards menores */
+  .dash-card{
+    padding:14px;
+  }
+
+  /* tabelas compactas */
+  .tabela-extrato th,
+  .tabela-extrato td{
+    padding:8px 6px;
+    font-size:12px;
+  }
+
+  /* botões */
+  button{
+    padding:10px;
+    font-size:13px;
+  }
+
+  /* login */
+  .login-card{
+    width:92%;
+    padding:25px;
+  }
+
+}
