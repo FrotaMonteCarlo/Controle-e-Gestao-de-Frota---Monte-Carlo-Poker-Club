@@ -1513,3 +1513,41 @@ canvas {
   }
 
 }
+/* ================= MOBILE TITULOS ================= */
+
+@media(max-width:600px){
+
+  .page h1{
+    font-size:18px;
+    margin-bottom:12px;
+  }
+
+  h2{
+    font-size:16px;
+  }
+
+  h3{
+    font-size:14px;
+  }
+
+  .titulo-extrato{
+    font-size:16px;
+    margin-bottom:10px;
+  }
+
+}
+/* ================= KPI GRID MOBILE ================= */
+
+@media(max-width:600px){
+
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+
+  .dash-card{
+    padding:14px;
+  }
+
+}
