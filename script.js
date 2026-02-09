@@ -50,6 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
       abrirPagina(link.dataset.page);
     });
   });
+  document.querySelectorAll(".menu-link").forEach(link=>{
+  link.addEventListener("click", ()=>{
+    document.querySelector(".sidebar").classList.remove("show");
+  });
+});
+
 
   // BOTÃO SAIR
   document.querySelector(".btn-logout")?.addEventListener("click", logoutSistema);
@@ -1775,5 +1781,21 @@ document.querySelectorAll(".menu-link").forEach(link => {
   link.addEventListener("click", () => {
     sidebar.classList.remove("show");
     overlay.classList.remove("show");
+  });
+});
+
+function toggleSidebar(){
+
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("overlaySidebar");
+
+  sidebar.classList.toggle("show");
+  overlay.classList.toggle("show");
+
+}
+document.querySelectorAll(".menu-link").forEach(link=>{
+  link.addEventListener("click", ()=>{
+    document.querySelector(".sidebar").classList.remove("show");
+    document.getElementById("overlaySidebar").classList.remove("show");
   });
 });
