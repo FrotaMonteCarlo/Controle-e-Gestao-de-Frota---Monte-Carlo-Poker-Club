@@ -486,6 +486,9 @@ window.excluirManutencao = excluirManutencao;
 /* ================= SPA ================= */
 
 function abrirPagina(id){
+  // fecha menu mobile automaticamente
+document.querySelector(".sidebar")?.classList.remove("show");
+
 
   document.querySelectorAll(".page")
     .forEach(p => p.classList.add("hidden"));
@@ -1754,3 +1757,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function toggleMenu(){
   document.querySelector(".sidebar").classList.toggle("show");
 }
+const sidebar = document.querySelector(".sidebar");
+const overlay = document.getElementById("sidebarOverlay");
+const btnMenu = document.querySelector(".btn-menu-mobile");
+
+btnMenu?.addEventListener("click", () => {
+  sidebar.classList.toggle("show");
+  overlay.classList.toggle("show");
+});
+
+overlay?.addEventListener("click", () => {
+  sidebar.classList.remove("show");
+  overlay.classList.remove("show");
+});
+
+document.querySelectorAll(".menu-link").forEach(link => {
+  link.addEventListener("click", () => {
+    sidebar.classList.remove("show");
+    overlay.classList.remove("show");
+  });
+});

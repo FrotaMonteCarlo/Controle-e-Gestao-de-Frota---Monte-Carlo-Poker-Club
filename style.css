@@ -52,12 +52,12 @@ body {
 .sidebar-overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.25);
-  backdrop-filter:blur(4px);
+  background:rgba(0,0,0,0.35);
+  backdrop-filter:blur(3px);
   opacity:0;
   pointer-events:none;
   transition:.25s;
-  z-index:999;
+  z-index:900;
 }
 
 .sidebar-overlay.show{
