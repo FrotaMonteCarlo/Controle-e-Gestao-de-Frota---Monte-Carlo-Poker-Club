@@ -1194,47 +1194,12 @@ canvas {
   border-bottom:1px solid #e5e7eb;
 }
 
-/* lado esquerdo */
-
-.topbar-left{
-  display:flex;
-  align-items:center;
-}
-
-.app-title{
-  font-size:18px;
-  font-weight:600;
-  color:#0f172a;
-  letter-spacing:.2px;
-}
-
 /* ================= USER AREA ================= */
 
 .user-area{
   display:flex;
   align-items:center;
   gap:14px;
-}
-
-/* texto */
-
-.user-info{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  line-height:1.1;
-}
-
-.user-info span{
-  font-size:14px;
-  font-weight:700;
-  color:#0f172a;
-}
-
-.user-info small{
-  font-size:11px;
-  font-weight:600;
-  color:#64748b;
 }
 
 /* avatar */
@@ -1635,4 +1600,150 @@ canvas {
     padding-top:70px;
   }
 
+}
+/* ================= MOBILE HEADER ENTERPRISE ================= */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:64px;
+  padding:0 16px;
+  background:#ffffff;
+  border-bottom:1px solid #e5e7eb;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.app-title{
+  font-size:17px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+/* botão menu */
+.btn-menu-mobile{
+  font-size:22px;
+  background:none;
+  border:none;
+  cursor:pointer;
+  display:none;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .btn-menu-mobile{
+    display:block;
+  }
+
+  .app-title{
+    font-size:16px;
+  }
+
+  .user-info{
+    display:none; /* mobile fica só avatar */
+  }
+
+  .btn-logout{
+    padding:6px 10px;
+    font-size:11px;
+  }
+
+}
+/* ================= HEADER MOBILE ENTERPRISE FINAL ================= */
+
+.topbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:56px;
+  background:#ffffff;
+  border-bottom:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  z-index:1200;
+}
+
+/* botão hamburguer */
+.btn-menu-mobile{
+  font-size:22px;
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+
+/* título central */
+.topbar-title{
+  font-size:16px;
+  font-weight:700;
+  color:#0f172a;
+  letter-spacing:.2px;
+  white-space:nowrap;
+}
+
+/* lado direito */
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* avatar */
+.avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#d4af37,#f5d76e);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:13px;
+  color:#111;
+}
+
+/* sair */
+.btn-logout{
+  height:30px;
+  padding:0 12px;
+  border-radius:8px;
+  background:#ef4444;
+  color:#fff;
+  border:none;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ================= AJUSTE CONTEÚDO ================= */
+
+/* empurra o conteúdo para baixo do header */
+.main{
+  padding-top:56px;
+}
+
+/* ================= TÍTULOS DAS PÁGINAS ================= */
+
+.page h1{
+  font-size:20px;
+  font-weight:700;
+  margin:14px 0 16px;
+  color:#0f172a;
+}
+
+/* ================= MOBILE REFINADO ================= */
+
+@media(min-width:769px){
+  .btn-menu-mobile{ display:none; }
 }
