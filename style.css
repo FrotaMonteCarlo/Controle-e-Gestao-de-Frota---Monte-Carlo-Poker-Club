@@ -47,6 +47,24 @@ body {
   box-shadow: 4px 0 15px rgba(0,0,0,.25);
 }
 
+/* ===== SIDEBAR OVERLAY ===== */
+
+.sidebar-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.25);
+  backdrop-filter:blur(4px);
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  z-index:999;
+}
+
+.sidebar-overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
 
 .logo img {
   width: 120px;
@@ -1264,6 +1282,41 @@ canvas {
   background:#e5e7eb;
   margin-right:6px;
 }
+
+/* ===== TOPBAR MOBILE FIX ===== */
+
+@media (max-width:768px){
+
+  .topbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+  }
+
+  .app-title{
+    font-size:14px;
+    max-width:55%;
+    line-height:1.2;
+  }
+
+  .user-area{
+    gap:8px;
+  }
+
+  .avatar{
+    width:34px;
+    height:34px;
+    font-size:13px;
+  }
+
+  .btn-logout{
+    padding:6px 10px;
+    font-size:12px;
+  }
+
+}
+
 /* ================= DASHBOARD CARDS COMPACT ================= */
 
 .dashboard-grid{
@@ -1366,12 +1419,15 @@ canvas {
 
   /* sidebar vira topo */
   .sidebar{
-    width:100%;
-    height:auto;
-    flex-direction:row;
-    padding:10px;
-    justify-content:space-between;
-  }
+    position:fixed;
+    left:-260px;
+    top:0;
+    height:100%;
+    width:240px;
+    z-index:1000;
+    transition:0.3s;
+}
+
 
   .sidebar .menu{
     display:flex;
@@ -1436,6 +1492,18 @@ canvas {
   position:relative;
   z-index:1001;
 }
+.menu-toggle{
+  font-size:22px;
+  cursor:pointer;
+  display:none;
+}
+
+@media (max-width:768px){
+  .menu-toggle{
+    display:block;
+  }
+}
+
 
 /* MOBILE */
 @media (max-width:768px){
@@ -1490,6 +1558,22 @@ canvas {
   }
 
 }
+
+/* ===== KPI MOBILE ENTERPRISE ===== */
+
+@media(max-width:600px){
+
+  .dashboard-grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+
+  .dash-card strong{
+    font-size:18px;
+  }
+
+}
+
 /* ================= MOBILE TITULOS ================= */
 
 @media(max-width:600px){
@@ -1513,29 +1597,23 @@ canvas {
   }
 
 }
-/* ================= MOBILE TITULOS ================= */
 
 @media(max-width:600px){
 
-  .page h1{
-    font-size:18px;
-    margin-bottom:12px;
+  h1{
+    font-size:20px;
   }
 
   h2{
-    font-size:16px;
+    font-size:17px;
   }
 
   h3{
-    font-size:14px;
-  }
-
-  .titulo-extrato{
-    font-size:16px;
-    margin-bottom:10px;
+    font-size:15px;
   }
 
 }
+
 /* ================= KPI GRID MOBILE ================= */
 
 @media(max-width:600px){
@@ -1548,6 +1626,13 @@ canvas {
 
   .dash-card{
     padding:14px;
+  }
+
+}
+@media(max-width:600px){
+
+  .main{
+    padding-top:70px;
   }
 
 }
