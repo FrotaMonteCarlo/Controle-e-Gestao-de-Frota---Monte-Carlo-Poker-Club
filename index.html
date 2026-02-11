@@ -1,11 +1,6 @@
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" href="./favicon.ico">
-
 
 <meta charset="UTF-8">
 <title>Monte Carlo</title>
@@ -25,46 +20,22 @@
 
 <body>
 
-<!-- ================= LOGIN SCREEN ================= -->
-
-<div id="loginScreen" class="login-wrapper">
-
+  <div id="loginTela" class="login-wrapper">
   <div class="login-card">
+    <img src="logo-montecarlo.png" class="login-logo">
+    <h1>Login</h1>
 
-   <img src="img/logo.png" class="login-logo">
+    <input id="loginUser" placeholder="Usuário">
+    <input id="loginSenha" type="password" placeholder="Senha">
 
-
-    <h1>Acesso ao Sistema</h1>
-    <span class="login-sub">Controle Corporativo de Frota</span>
-
-    <input
-      id="loginUser"
-      type="text"
-      placeholder="Usuário"
-      autocomplete="username"
-    >
-
-    <input
-      id="loginPass"
-      type="password"
-      placeholder="Senha"
-      autocomplete="current-password"
-    >
-
-    <button class="btn-login" onclick="fazerLogin()">
+    <button onclick="loginSistema(loginUser.value, loginSenha.value)">
       Entrar
     </button>
-
-    <span id="loginErro" class="login-erro"></span>
-
   </div>
-
 </div>
 
 
-<!-- ================= SISTEMA ================= -->
-
-<div class="app" id="appSistema" style="display:none">
+<div class="app">
 
 <!-- ================= SIDEBAR ================= -->
 
@@ -76,42 +47,36 @@
 
 <nav class="menu">
 
-<a href="#" class="menu-link active" data-page="dashboard">Dashboard</a>
-<a href="#" class="menu-link" data-page="veiculos">Veículos</a>
-<a href="#" class="menu-link" data-page="motoristas">Motoristas</a>
-<a href="#" class="menu-link" data-page="abastecimento">Abastecimento</a>
-<a href="#" class="menu-link" data-page="bi">BI Executivo</a>
-<a href="#" class="menu-link" data-page="manutencao">🛠 Manutenção</a>
-<a href="#" class="menu-link" data-page="financeiro">💰 Financeiro</a>
-
+<a href="#" data-page="dashboard" class="menu-link active">📊 Dashboard</a>
+<a href="#" data-page="veiculos" class="menu-link">🚗 Veículos</a>
+<a href="#" data-page="motoristas" class="menu-link">👤 Motoristas</a>
+<a href="#" data-page="abastecimento" class="menu-link">⛽ Abastecimento</a>
+<a href="#" data-page="bi" class="menu-link">📈 BI Executivo</a>
+<a href="#" data-page="manutencao" class="menu-link">🛠 Manutenção</a>
+<a href="#" data-page="financeiro" class="menu-link">💰 Financeiro</a>
 
 </nav>
 
 </aside>
-<div id="overlaySidebar" onclick="toggleSidebar()"></div>
-
 
 <!-- ================= MAIN ================= -->
 
 <div class="main">
 
-<div class="topbar">
+<header class="topbar">
 
-  <button class="btn-menu-mobile" onclick="toggleSidebar()">☰</button>
-
-
-  <div class="topbar-title">
-    Monte Carlo
-  </div>
-
-  <div class="topbar-right">
-    <div class="avatar">MC</div>
-    <button class="btn-logout">Sair</button>
-  </div>
-
+<div class="page-title">
+Monte Carlo — Controle Corporativo e Gestão de Frota
 </div>
 
+<div class="user-area">
+<span>Administrador</span>
+<div class="avatar">MC</div>
+</div>
 
+</header>
+
+<main class="content">
 
 <!-- ================= DASHBOARD ================= -->
 
@@ -157,7 +122,7 @@
 <div class="icon">💰</div>
 <div>
 <span>Combustível</span>
-<strong class="valor-monetario" id="totalCombustivel">R$ 0,00</strong>
+<strong id="totalCombustivel">R$ 0,00</strong>
 <small id="biCombustivel" class="bi-variacao">—</small>
 </div>
 </div>
@@ -166,7 +131,7 @@
 <div class="icon">📋</div>
 <div>
 <span>Manutenção</span>
-<strong class="valor-monetario" id="totalManutencao">R$ 0,00</strong>
+<strong id="totalManutencao">R$ 0,00</strong>
 </div>
 </div>
 
@@ -196,162 +161,74 @@
 
 <section id="bi" class="page hidden">
 
-  <h1>📊 BI Executivo — Performance da Frota</h1>
+<h1>BI Executivo — Performance da Frota</h1>
 
-  <!-- ===== KPIs ===== -->
+<div class="dashboard-grid">
 
-  <div class="dashboard-grid">
+<div class="dash-card">
+<span>Total Gasto</span>
+<strong id="biTotal">R$ 0,00</strong>
+</div>
 
-    <div class="dash-card">
-      <span>Total Gasto</span>
-      <strong id="biTotal">R$ 0,00</strong>
-    </div>
+<div class="dash-card">
+<span>Litros Consumidos</span>
+<strong id="biLitros">0</strong>
+</div>
 
-    <div class="dash-card">
-      <span>Litros Consumidos</span>
-      <strong id="biLitros">0</strong>
-    </div>
+<div class="dash-card">
+<span>KM Rodados</span>
+<strong id="biKm">0</strong>
+</div>
 
-    <div class="dash-card">
-      <span>KM Rodados</span>
-      <strong id="biKm">0</strong>
-    </div>
-
-    <div class="dash-card">
-      <span>Custo Médio por KM</span>
-      <strong id="biCustoKm">R$ 0,00</strong>
-    </div>
-
-  </div>
-
-  <!-- ===== GRÁFICO ABASTECIMENTO ===== -->
-
-  <div class="grafico-card" style="margin-top:25px">
-
-    <h3>🚗 Top 5 Veículos — Consumo de Combustível</h3>
-
-    <canvas id="grafTopVeiculos"></canvas>
-
-  </div>
-
-  <!-- ===== RANKING VEÍCULOS ===== -->
-
-  <h2 style="margin-top:30px">🏆 Ranking de Veículos (Combustível)</h2>
-
-  <table class="tabela-extrato">
-
-    <thead>
-      <tr>
-        <th>Veículo</th>
-        <th>Total Gasto</th>
-        <th>KM Rodados</th>
-        <th>Custo / KM</th>
-      </tr>
-    </thead>
-
-    <tbody id="rankingVeiculos"></tbody>
-
-  </table>
-
-  <!-- ===== RANKING MOTORISTAS ===== -->
-
-  <h2 style="margin-top:30px">👤 Ranking de Motoristas (Consumo)</h2>
-
-  <table class="tabela-extrato">
-
-    <thead>
-      <tr>
-        <th>Motorista</th>
-        <th>Total Gasto</th>
-        <th>KM Rodados</th>
-        <th>Custo / KM</th>
-      </tr>
-    </thead>
-
-    <tbody id="rankingMotoristas"></tbody>
-
-  </table>
-
-  <!-- ===== GRÁFICO MANUTENÇÃO ===== -->
-
-  <div class="grafico-card" style="margin-top:30px">
-
-    <h3>🛠 Top 5 Veículos — Gastos com Manutenção</h3>
-
-    <canvas id="grafTopManutencao"></canvas>
-
-  </div>
-
-  <!-- ===== RANKING MANUTENÇÃO ===== -->
-
-  <h2 style="margin-top:30px">📋 Ranking de Gastos com Manutenção</h2>
-
-  <table class="tabela-extrato">
-
-    <thead>
-      <tr>
-        <th>Veículo</th>
-        <th>Total em Manutenção</th>
-      </tr>
-    </thead>
-
-    <tbody id="rankingManutencao"></tbody>
-
-  </table>
-
-</section>
-
-<!-- ================= MANUTENÇÃO ================= -->
-
-<section id="manutencao" class="page hidden">
-
-<h1>Manutenção da Frota</h1>
-
-<div class="form-grid">
-
-  <select id="manVeiculo">
-    <option value="">Selecione Veículo</option>
-  </select>
-
-  <select id="manCategoria">
-    <option value="">Categoria</option>
-    <option value="Preventiva">Preventiva</option>
-    <option value="Corretiva">Corretiva</option>
-    <option value="Troca de Óleo">Troca de Óleo</option>
-    <option value="Freios">Freios</option>
-    <option value="Suspensão">Suspensão</option>
-    <option value="Pneus">Pneus</option>
-    <option value="Elétrica">Elétrica</option>
-    <option value="Motor">Motor</option>
-    <option value="Outros">Outros</option>
-  </select>
-
-  <input id="manDescricao" placeholder="Descrição">
-  <input id="manValor" type="number" placeholder="Valor">
-  <input id="manData" type="date">
-
-  <button onclick="salvarManutencao()">Salvar Manutenção</button>
+<div class="dash-card">
+<span>Custo Médio KM</span>
+<strong id="biCustoKm">R$ 0,00</strong>
+</div>
 
 </div>
 
+<div class="grafico-card" style="margin-top:20px">
+<h3>Top 5 Veículos por Consumo</h3>
+<canvas id="grafTopVeiculos"></canvas>
+</div>
+
+<h2 style="margin-top:20px">Ranking de Veículos</h2>
+
 <table class="tabela-extrato">
-  <thead>
-    <tr>
-      <th>Data</th>
-      <th>Veículo</th>
-      <th>Categoria</th>
-      <th>Descrição</th>
-      <th>Valor</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody id="listaManutencoes"></tbody>
+
+<thead>
+<tr>
+<th>Veículo</th>
+<th>Total Gasto</th>
+<th>KM</th>
+<th>Custo/KM</th>
+</tr>
+</thead>
+
+<tbody id="rankingVeiculos"></tbody>
+
+</table>
+
+<h2 style="margin-top:20px">Ranking de Motoristas</h2>
+
+<table class="tabela-extrato">
+
+<thead>
+<tr>
+<th>Motorista</th>
+<th>Total Gasto</th>
+<th>KM</th>
+<th>Custo/KM</th>
+</tr>
+</thead>
+
+<tbody id="rankingMotoristas"></tbody>
+
 </table>
 
 </section>
 
-
-  <!-- ================= VEÍCULOS ================= -->
+<!-- ================= VEÍCULOS ================= -->
 
 <section id="veiculos" class="page hidden">
 
@@ -384,28 +261,7 @@
 
 <button onclick="salvarVeiculo()">Salvar Veículo</button>
 
-<table class="tabela-extrato" style="margin-top:20px">
-
-<thead>
-<tr>
-  <th>Placa</th>
-  <th>Marca</th>
-  <th>Modelo</th>
-  <th>Ano</th>
-  <th>Categoria</th>
-  <th>Cor</th>
-  <th>Renavan</th>
-  <th>KM Atual</th>
-  <th>KM Óleo</th>
-  <th>Ações</th>
-
-</tr>
-</thead>
-
-<tbody id="listaVeiculos"></tbody>
-
-</table>
-
+<ul id="listaVeiculos" class="lista"></ul>
 
 </section>
 
@@ -426,21 +282,7 @@
 
 <button onclick="salvarMotorista()">Salvar Motorista</button>
 
-<table class="tabela-extrato" style="margin-top:20px">
-
-<thead>
-<tr>
-  <th>Nome</th>
-  <th>CPF</th>
-  <th>CNH</th>
-  <th>Telefone</th>
-</tr>
-</thead>
-
-<tbody id="listaMotoristas"></tbody>
-
-</table>
-
+<ul id="listaMotoristas" class="lista"></ul>
 
 </section>
 
@@ -482,7 +324,9 @@
 
 <button onclick="salvarAbastecimento()">Salvar Abastecimento</button>
 
-<button onclick="gerarPDFExecutivo()" class="btn-pdf">📄 Exportar PDF Executivo</button>
+<button onclick="gerarPDFExecutivo()" class="btn-pdf">
+📄 Exportar PDF Executivo
+</button>
 
 <h2 class="titulo-extrato">Extrato Executivo</h2>
 
@@ -511,11 +355,15 @@
 <div class="resumo-box">
 <span>KM Rodados</span>
 <strong id="resumoKm">0</strong>
+<small id="biKm" class="bi-variacao">—</small>
+
 </div>
 
 <div class="resumo-box">
 <span>Custo Médio KM</span>
 <strong id="resumoCustoKm">R$ 0,00</strong>
+<small id="biCustoKm" class="bi-variacao">—</small>
+
 </div>
 
 </div>
@@ -532,14 +380,49 @@
 <th>KM</th>
 <th>R$/KM</th>
 <th>Ações</th>
-
 </tr>
 </thead>
 
 <tbody id="listaAbastecimentos"></tbody>
 
-
 </table>
+
+</section>
+
+<!-- ================= MANUTENÇÃO ================= -->
+
+<section id="manutencao" class="page hidden">
+
+<h1>Manutenção</h1>
+
+<div class="form-grid">
+
+<select id="manVeiculo"></select>
+
+<select id="manTipo">
+<option value="">Tipo</option>
+<option>Preventiva</option>
+<option>Corretiva</option>
+</select>
+
+<input id="manDescricao" placeholder="Descrição">
+<input id="manFornecedor" placeholder="Fornecedor">
+<input id="manKm" type="number" placeholder="KM">
+<input id="manValor" type="number" step="0.01" placeholder="Valor">
+
+</div>
+
+<button onclick="salvarManutencao()">Salvar Manutenção</button>
+
+</section>
+
+<!-- ================= FINANCEIRO ================= -->
+
+<section id="financeiro" class="page hidden">
+
+<h1>Financeiro</h1>
+
+<p>Módulo corporativo pronto para expansão.</p>
 
 </section>
 
@@ -550,7 +433,6 @@
 </div>
 
 <!-- JS -->
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 
 </body>
