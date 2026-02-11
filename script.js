@@ -1,3 +1,7 @@
+function logout(){
+  sessionStorage.removeItem("usuarioLogado");
+  location.reload();
+}
 /* ================= LOGIN ================= */
 
 const usuarios = [
@@ -20,10 +24,19 @@ function loginSistema(user, senha){
   location.reload();
 }
 
-function logout(){
-  sessionStorage.removeItem("usuarioLogado");
-  location.reload();
-}
+document.addEventListener("DOMContentLoaded", () => {
+
+  const usuario = JSON.parse(sessionStorage.getItem("usuarioLogado"));
+
+  if(usuario){
+    const nome = document.getElementById("nomeUsuario");
+    const perfil = document.getElementById("perfilUsuario");
+
+    if(nome) nome.textContent = usuario.user;
+    if(perfil) perfil.textContent = usuario.perfil;
+  }
+
+});
 
 
 /* ================= REGISTRO GLOBAL ================= */
@@ -686,3 +699,143 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+/* ================= EDITAR VEÍCULO ================= */
+
+window.editarVeiculo = function(index){
+
+  const v = veiculos[index];
+  if(!v) return;
+
+  editVeiculo = index;
+
+  vPlaca.value = v.placa;
+  vMarca.value = v.marca;
+  vModelo.value = v.modelo;
+  vAno.value = v.ano;
+  vCategoria.value = v.categoria;
+  vCor.value = v.cor;
+  vRenavan.value = v.renavan;
+  vKmAtual.value = v.kmAtual;
+  vKmOleo.value = v.kmOleo;
+
+  abrirPagina("veiculos");
+};
+
+/* ================= EDITAR MOTORISTA ================= */
+
+window.editarMotorista = function(index){
+
+  const m = motoristas[index];
+  if(!m) return;
+
+  editMotorista = index;
+
+  mNome.value = m.nome;
+  mCpf.value = m.cpf;
+  mCnh.value = m.cnh;
+  mTelefone.value = m.telefone;
+
+  abrirPagina("motoristas");
+};
+
+/* ================= EXCLUIR MOTORISTA ================= */
+
+window.excluirMotorista = function(index){
+
+  if(!confirm("Excluir motorista?")) return;
+
+  motoristas.splice(index,1);
+
+  localStorage.setItem("motoristas",
+    JSON.stringify(motoristas)
+  );
+
+  renderMotoristas();
+  atualizarDashboard();
+};
+
+/* ================= EDITAR ABASTECIMENTO ================= */
+
+window.editarAbastecimento = function(index){
+
+  const a = abastecimentos[index];
+  if(!a) return;
+
+  editAbastecimento = index;
+
+  aVeiculo.value = a.veiculo;
+  aMotorista.value = a.motorista;
+  aPreco.value = a.preco;
+  aQuantidade.value = a.litros;
+  aKmAnterior.value = a.kmAnterior;
+  aKmAtual2.value = a.kmAtual;
+  aData.value = a.data;
+
+  calcularAbastecimento();
+  abrirPagina("abastecimento");
+};
+
+/* ================= EXCLUIR ABASTECIMENTO ================= */
+
+window.excluirAbastecimento = function(index){
+
+  if(!confirm("Excluir abastecimento?")) return;
+
+  abastecimentos.splice(index,1);
+
+  localStorage.setItem("abastecimentos",
+    JSON.stringify(abastecimentos)
+  );
+
+  renderAbastecimentos();
+  atualizarDashboard();
+};
+
+/* ================= EXCLUIR MANUTENÇÃO ================= */
+
+window.excluirManutencao = function(index){
+
+  if(!confirm("Excluir manutenção?")) return;
+
+  manutencoes.splice(index,1);
+
+  localStorage.setItem("manutencoes",
+    JSON.stringify(manutencoes)
+  );
+};
+
+/* ================= LOGIN VISIBILIDADE ================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const usuario = JSON.parse(sessionStorage.getItem("usuarioLogado"));
+
+  if(!usuario){
+    document.querySelector(".app").style.display = "none";
+  }else{
+    document.getElementById("loginTela").style.display = "none";
+  }
+
+  aplicarPermissoes();
+
+});
+/* ================= FIX GLOBAL ABASTECIMENTO ================= */
+
+window.editarAbastecimento = function(index){
+
+  const a = abastecimentos[index];
+  if(!a) return;
+
+  editAbastecimento = index;
+
+  aVeiculo.value = a.veiculo;
+  aMotorista.value = a.motorista;
+  aPreco.value = a.preco;
+  aQuantidade.value = a.litros;
+  aKmAnterior.value = a.kmAnterior;
+  aKmAtual2.value = a.kmAtual;
+  aData.value = a.data;
+
+  calcularAbastecimento();
+  abrirPagina("abastecimento");
+};
