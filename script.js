@@ -1,7 +1,8 @@
 function logout(){
   sessionStorage.removeItem("usuarioLogado");
-  location.reload();
+  location.href = "index.html";
 }
+
 /* ================= LOGIN ================= */
 
 const usuarios = [
